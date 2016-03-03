@@ -5,8 +5,8 @@ require './lib/issue'
 
 opts = Slop.parse do |o|
   # Connection settings
-  o.string '-u', '--username', 'username', default: SimpleConfig.jira.user
-  o.string '-p', '--password', 'password', default: SimpleConfig.jira.pass
+  o.string '-u', '--username', 'username', default: SimpleConfig.jira.username
+  o.string '-p', '--password', 'password', default: SimpleConfig.jira.password
   o.string '--site', 'site', default: SimpleConfig.jira.site
   o.string '--context_path', 'context path', default: ''
   o.string '--release', 'release'

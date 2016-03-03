@@ -8,14 +8,14 @@ require_relative 'lib/repo'
 
 opts = Slop.parse do |o|
   # Connection settings
-  o.string '-u', '--username', 'username', default: SimpleConfig.jira.user
-  o.string '-p', '--password', 'password', default: SimpleConfig.jira.pass
+  o.string '-u', '--username', 'username', default: SimpleConfig.jira.username
+  o.string '-p', '--password', 'password', default: SimpleConfig.jira.password
   o.string '--site', 'site', default: SimpleConfig.jira.site
   o.string '--context_path', 'context path', default: ''
   o.string '--release', 'release', default: 'OTT-4749'
 
   o.string '-gu', '--gitusername', 'username', default: 'jenkins_ott'
-  o.string '-gp', '--gitpassword', 'password', default: SimpleConfig.jira.pass
+  o.string '-gp', '--gitpassword', 'password', default: SimpleConfig.jira.password
 
   o.bool '--force', 'post comments to Jira', default: false
 

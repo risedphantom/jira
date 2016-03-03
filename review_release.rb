@@ -8,10 +8,6 @@ require_relative 'lib/issue'
 
 WORKDIR = SimpleConfig.git.workdir
 
-JIRA_USERNAME = SimpleConfig.jira.user
-JIRA_PASSWORD = SimpleConfig.jira.pass
-JIRA_SITE = SimpleConfig.jira.site
-
 post_to_ticket = ENV.fetch('ROOT_BUILD_CAUSE_REMOTECAUSE', nil) == 'true' ? true : false
 
 fail_on_jscs = ENV.fetch('FAIL_ON_JSCS', false)
@@ -28,11 +24,7 @@ unless (triggered_issue = SimpleConfig.jira.issue)
   exit 2
 end
 
-jira = JIRA::Client.new username: JIRA_USERNAME,
-                        password: JIRA_PASSWORD,
-                        site: JIRA_SITE,
-                        auth_type: :basic,
-                        context_path: ''
+jira = JIRA::Client.new SimpleConfig.jira.to_h
 # noinspection RubyArgCount
 issue = jira.Issue.jql("key = #{triggered_issue}")
 if (issue.is_a? Array) && (issue.length > 1)
