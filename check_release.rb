@@ -13,27 +13,6 @@ BASEURL = ENV.fetch('BB_URL', 'git@bitbucket.org:')
 EMAIL_FROM = SimpleConfig.sendgrid.from
 SG_USER = SimpleConfig.sendgrid.user
 SG_KEY = SimpleConfig.sendgrid.pass
-NOTIFY_LIST = %w(
-  src/mcore_modules/oauth2/**
-  src/mcore_modules/session_auth/**
-  src/mcore_modules/mcore/**
-  src/mcore_modules/conf/api/**
-  src/mcore_modules/payment/**
-  src/mcore_modules/rapida/**
-  src/mcore_modules/system/**
-  src/mcore_modules/visitormanager/**
-  src/tw_shared_types/payment/**
-  src/tw_shared_types/payment_gate/**
-  src/tw_shared_types/permissions/**
-  src/tw_shared_types/pricing/**
-  src/tw_shared_types/rapida/**
-  src/tw_shared_types/virtual_cards/**
-  src/tw_shared_types/virtual_wallet/**
-  src/tw_shared_types/visitors/**
-  src/mcore/**
-  conf/api/**
-  lib/nodejs/*
-).freeze
 SKIPPED_EMAILS = %w(services@onetwotrip.com default@default.com)
 
 if !ENV['payload'] || ENV['payload'].empty?
@@ -81,37 +60,6 @@ if old_commit == 'master'
 end
 
 res_text << g_rep.check_diff('HEAD', old_commit)
-
-# SRV-735
-crit_changed_files = []
-g_rep.changed_files('HEAD', old_commit).each do |path|
-  NOTIFY_LIST.each do |el|
-    crit_changed_files << path if File.fnmatch? el, path
-  end
-end
-
-crit_changed_files.uniq!
-
-unless crit_changed_files.empty?
-  puts "Notifying code-control!\n#{crit_changed_files.join "\n"}\n"
-  mail = SendGrid::Mail.new do |m|
-    m.to = SimpleConfig.git.reviewer
-    m.from = EMAIL_FROM
-    m.subject = "Изменены критичные файлы в #{payload['repository']['full_name']}"
-    diff_link = 'https://bitbucket.org/'\
-                "#{payload['repository']['full_name']}"\
-                "/branches/compare/#{new_commit}..#{old_commit}#diff"
-    m.html = <<MAIL
-Привет, Строгий Контроль!<br />
-Тут вот чего: <a href="mailto:#{email_to}">#{author_name}</a> взял и <a href="#{diff_link}">решил поменять</a>
-кое-что критичное, а именно:<br />
-<pre>#{crit_changed_files.join("\n")}</pre><br />
-Подробности: <a href=\"https://bitbucket.org/#{payload['repository']['full_name']}/branches/compare/#{new_commit}..#{old_commit}\">тут</a>.
-<br />Удачи!"
-MAIL
-  end
-  SendGrid::Client.new(api_user: SG_USER, api_key: SG_KEY).send mail
-end
 
 exit 0 if res_text.empty?
 
