@@ -8,7 +8,7 @@ module JIRA
     attr_reader :pr, :git_config, :changed_files, :reviewers
 
     def initialize(git_config, hash)
-      fail ArgumentError, 'Missing git config' unless git_config
+      raise ArgumentError, 'Missing git config' unless git_config
       begin
         valid?(hash)
       rescue => e
@@ -96,7 +96,7 @@ module JIRA
     def valid?(input)
       src = parse_url(input['source']['url'])
       dst = parse_url(input['destination']['url'])
-      fail 'Source and Destination repos in PR are different' unless src.to_repo_s == dst.to_repo_s
+      raise 'Source and Destination repos in PR are different' unless src.to_repo_s == dst.to_repo_s
     end
   end
 
@@ -114,11 +114,8 @@ module JIRA
     end
 
     def add(pr)
-      if pr.instance_of?(PullRequest)
-        @prs.push pr
-      else
-        fail TypeError, "Expected PullRequest value. Got #{pr.class}"
-      end
+      raise TypeError, "Expected PullRequest value. Got #{pr.class}" unless pr.instance_of?(PullRequest)
+      @prs.push pr
     end
 
     def valid?
@@ -129,7 +126,7 @@ module JIRA
     end
 
     def empty?
-      fail 'Has no PullRequests' if @prs.empty?
+      raise 'Has no PullRequests' if @prs.empty?
     end
 
     def filter_by(key, *args)
@@ -168,7 +165,7 @@ module JIRA
 
     def duplicates?
       urls = @prs.map { |i| i.pr['source']['url'] }
-      fail "PullRequests has duplication: #{urls.join ','}" if urls.uniq.length != urls.length
+      raise "PullRequests has duplication: #{urls.join ','}" if urls.uniq.length != urls.length
     end
   end
 end

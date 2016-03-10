@@ -27,11 +27,8 @@ end
 jira = JIRA::Client.new SimpleConfig.jira.to_h
 # noinspection RubyArgCount
 issue = jira.Issue.jql("key = #{triggered_issue}")
-if (issue.is_a? Array) && (issue.length > 1)
-  fail "WTF??? Issue search returned #{issue.length} elements!"
-elsif issue.is_a? Array
-  issue = issue[0]
-end
+raise "WTF??? Issue search returned #{issue.length} elements!" if (issue.is_a? Array) && (issue.length > 1)
+issue = issue[0] if issue.is_a? Array
 
 errors = []
 

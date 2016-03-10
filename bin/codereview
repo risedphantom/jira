@@ -16,8 +16,8 @@ end
 jira = JIRA::Client.new SimpleConfig.jira.to_h
 issue = jira.Issue.find(SimpleConfig.jira.issue)
 pullrequests = issue.pullrequests(SimpleConfig.git.to_h)
-               .filter_by_status('OPEN')
-               .filter_by_source_url(SimpleConfig.jira.issue)
+                    .filter_by_status('OPEN')
+                    .filter_by_source_url(SimpleConfig.jira.issue)
 
 # Parsing/Validating PR
 unless pullrequests.valid?

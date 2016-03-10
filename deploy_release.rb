@@ -19,7 +19,7 @@ opts = Slop.parse do |o|
   end
 end
 
-fail 'No stage!' unless ENV['STAGE']
+raise 'No stage!' unless ENV['STAGE']
 
 options = { auth_type: :basic }.merge(opts.to_hash)
 client = JIRA::Client.new(options)
