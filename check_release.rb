@@ -13,7 +13,7 @@ BASEURL = ENV.fetch('BB_URL', 'git@bitbucket.org:')
 EMAIL_FROM = SimpleConfig.sendgrid.from
 SG_USER = SimpleConfig.sendgrid.user
 SG_KEY = SimpleConfig.sendgrid.pass
-SKIPPED_EMAILS = %w(services@onetwotrip.com default@default.com)
+SKIPPED_EMAILS = %w(services@onetwotrip.com default@default.com).freeze
 
 if !ENV['payload'] || ENV['payload'].empty?
   print "No payload - no result\n"

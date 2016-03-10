@@ -31,7 +31,7 @@ class GitRepo
   end
 
   def delete_branch!(branch)
-    fail ArgumentError, 'Can not remove branch master' if branch == 'master'
+    raise ArgumentError, 'Can not remove branch master' if branch == 'master'
     @git.branch(branch).delete
     @git.chdir do
       out = `git push -q origin :#{branch}`
@@ -59,13 +59,13 @@ class GitRepo
     @has_jscs = File.readable? @git.dir.to_s + '/.jscsrc' if @has_jscs.nil?
     @has_jscs
   end
-  alias_method :has_jscs?, :jscs?
+  alias has_jscs? jscs?
 
   def jshint?
     @has_jshint = File.readable? @git.dir.to_s + '/.jshintrc' if @has_jshint.nil?
     @has_jshint
   end
-  alias_method :has_jshint?, :jshint?
+  alias has_jshint? jshint?
 
   def checkout(commit = nil)
     unless commit
@@ -210,7 +210,7 @@ class GitRepo
 
   def run_command(command, commit = nil)
     if command.nil? || command.empty?
-      fail ArgumentError.new, 'Empty or nil command!'
+      raise ArgumentError.new, 'Empty or nil command!'
     end
     out = ''
     if commit
