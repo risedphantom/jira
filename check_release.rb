@@ -1,6 +1,3 @@
-##
-# frozen_string_literal: true
-#
 require 'simple_config'
 require 'json'
 require 'git'
