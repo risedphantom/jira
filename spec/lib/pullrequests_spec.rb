@@ -41,6 +41,18 @@ describe JIRA::PullRequests do
     @prs.add @pullreq_double
   end
 
+  it '.each returns pullrequest enumerable' do
+    pr_data =
+      { 'source' => { 'url' => 'https://bb.org/org/repo/branch/OTT-0001' },
+        'destination' => { 'url' => 'https://bb.org/org/repo/branch/master' },
+        'status' => 'OPEN' }
+    allow(@pullreq_double).to receive(:pr) { pr_data }
+    @prs.add @pullreq_double
+    @prs.each do |pr|
+      expect(pr).to eq @pullreq_double
+    end
+  end
+
   it '.add method fails if argument is not PullRequest' do
     expect { @prs.add 'String' }.to raise_error(TypeError)
   end
