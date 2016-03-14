@@ -79,4 +79,60 @@ describe JIRA::Resource::Issue do
     issue = JIRA::Resource::Issue.new(@jira)
     issue.post_comment 'BODY'
   end
+
+  it '.tags?(key, value) should returns bool' do
+    key = 'customtags'
+    val = 'value'
+    issue = JIRA::Resource::Issue.new(@jira)
+    issue.instance_variable_set(:@attrs,
+                                'fields' => {
+                                  'fields' => {
+                                    key => [{ 'value' => val }]
+                                  }
+                                })
+    expect(issue.tags?(key, val)).to eq true
+
+    expect(issue.tags?(key, 'badval')).to eq false
+    expect(issue.tags?('badkey', val)).to eq false
+    expect(issue.tags?(nil, nil)).to eq false
+  end
+
+  it '.all_deploys should returns all dependent' do
+    issue = JIRA::Resource::Issue.new(@jira)
+    issue_1 = issue.dup
+    issue_2 = issue.dup
+    sub_issue = issue.dup
+
+    allow(issue).to receive(:deploys).and_return [issue_1, issue_2]
+    allow(issue_1).to receive(:deploys).and_return [sub_issue]
+    allow(issue_2).to receive(:deploys).and_return []
+    allow(sub_issue).to receive(:deploys).and_return []
+
+    expect(issue.all_deploys.class.name).to eq 'Array'
+    expect(issue.all_deploys).to include issue, issue_1, issue_2, sub_issue
+  end
+  it '.all_deploys should returns filtered issues' do
+    issue = JIRA::Resource::Issue.new(@jira)
+    issue.instance_variable_set(:@attrs, 'fields' => {
+                                  'key' => 'ID',
+                                  'fields' => {
+                                    'customtags' => [
+                                      { 'value' => 'value' }
+                                    ]
+                                  } })
+
+    issue_1 = issue.dup
+    issue_2 = issue.dup
+    sub_issue = issue.dup
+
+    allow(issue).to receive(:deploys).and_return [issue_1, issue_2]
+    allow(issue_1).to receive(:deploys).and_return [sub_issue]
+    allow(issue_2).to receive(:deploys).and_return []
+
+    allow(issue).to receive(:tags?).with('customtags', 'value').and_return false
+    allow(issue_1).to receive(:tags?).with('customtags', 'value').and_return true
+    allow(issue_2).to receive(:tags?).with('customtags', 'value').and_return false
+
+    expect(issue.all_deploys { |i| i.tags?('customtags', 'value') }).to include issue, issue_2
+  end
 end

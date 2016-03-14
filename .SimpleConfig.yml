@@ -13,6 +13,9 @@ jira:
   issue:    <%= ENV['ISSUE'] %>
   auth_type: :basic
   context_path: ''
+  tags:
+    field: 'customfield_11001'
+    deploy: 'Manual Deploy'
 git:
   reviewer: <%= ENV['GITATTR_REVIEWER'] %>
   reviewer_key: <%= ENV.fetch('GITATTR_REVIEWER_KEY', 'reviewer.mail') %>
