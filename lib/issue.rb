@@ -3,6 +3,7 @@ require 'jira/client'
 require 'rest-client'
 require 'addressable/uri'
 require 'json'
+require 'pullrequests'
 
 module JIRA
   module Resource
