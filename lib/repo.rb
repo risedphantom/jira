@@ -88,16 +88,12 @@ class GitRepo
 
   def check_jscs(filename, ranges = [])
     return '' unless has_jscs?
-    # rubocop:disable Lint/StringConversionInInterpolation
-    run_check "jscs -c '#{@git.dir.to_s}/.jscsrc' -r inline #{@git.dir.to_s}/#{filename}", filename, ranges
-    # rubocop:enable Lint/StringConversionInInterpolation
+    run_check "jscs -c '#{@git.dir}/.jscsrc' -r inline #{@git.dir}/#{filename}", filename, ranges
   end
 
   def check_jshint(filename, ranges = [])
     return '' unless has_jshint?
-    # rubocop:disable Lint/StringConversionInInterpolation
-    run_check "jshint -c '#{@git.dir.to_s}/.jshintrc' #{@git.dir.to_s}/#{filename}", filename, ranges
-    # rubocop:enable Lint/StringConversionInInterpolation
+    run_check "jshint -c '#{@git.dir}/.jshintrc' #{@git.dir}/#{filename}", filename, ranges
   end
 
   def get_diff(new_commit, old_commit = nil)
