@@ -52,28 +52,26 @@ def check_diff(git_repo, new_commit, old_commit = nil)
     this_file_errors = ''
     if has_jscs
       # call jscs
-      cmd = "jscs -c '#{prj_dir.to_path}/.jscsrc' -r inline #{prj_dir.to_path}/#{filename}"
-      Open3.popen3(cmd) do |_stdin, stdout, _stderr|
-        stdout.each_line do |line|
-          next unless (md = /\.js: line (\d+)(,.*)$/.match(line))
-          next unless ranges.detect { |r| r.cover? md[1].to_i }
-          this_file_errors += "#{filename}: line #{md[1]}#{md[2]}\n"
-        end
-      end
+      this_file_errors += run_cmd("jscs -c '#{prj_dir.to_path}/.jscsrc' -r inline #{prj_dir.to_path}/#{filename}")
     end
     if has_jshint
       # call jshint
-      cmd = "jshint -c '#{prj_dir.to_path}/.jshintrc' #{prj_dir.to_path}/#{filename}"
-      Open3.popen3(cmd) do |_stdin, stdout, _stderr|
-        stdout.each_line do |line|
-          next unless (md = /\.js: line (\d+)(,.*)$/.match(line))
-          next unless ranges.detect { |r| r.cover? md[1].to_i }
-          this_file_errors += "#{filename}: line #{md[1]}#{md[2]}\n"
-        end
-      end
+      this_file_errors += run_cmd("jshint -c '#{prj_dir.to_path}/.jshintrc' #{prj_dir.to_path}/#{filename}")
     end
     res_text += "#{this_file_errors}\n" unless this_file_errors.empty?
   end
   git_repo.checkout current_commit unless current_commit == new_commit
   res_text
+end
+
+def run_cmd(cmd)
+  this_file_errors = ''
+  Open3.popen3(cmd) do |_stdin, stdout, _stderr|
+    stdout.each_line do |line|
+      next unless (md = /\.js: line (\d+)(,.*)$/.match(line)) &&
+                  ranges.detect { |r| r.cover? md[1].to_i }
+      this_file_errors += "#{filename}: line #{md[1]}#{md[2]}\n"
+    end
+  end
+  this_file_errors
 end
