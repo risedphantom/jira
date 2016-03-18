@@ -38,25 +38,19 @@ client = JIRA::Client.new(options)
 
 release = client.Issue.find(opts[:release])
 
-if release.deploys.any? && !opts[:ignorelinks]
-  puts 'linked'
-  issues = release.deploys
-  issues.each do |issue|
-    puts issue.key
-    issue.transition 'Not merged' if issue.has_transition? 'Not merged'
-  end
-else
-  puts 'fresh'
-  issues = client.Issue.jql(%[(project = Accounting AND status = Passed OR
+unless release.deploys.any? && !opts[:ignorelinks]
+  puts 'Deploys issue not found or ignored. Force JQL.'
+  client.Issue.jql(
+    %[(project = Accounting AND status = Passed OR
     status in ("Merge ready") OR (status in ( "In Release")
     AND issue in linkedIssues(#{release.key},"deployes")))
     AND project not in ("Servers & Services", Hotels, "Russian Railroad")
-    ORDER BY priority DESC, issuekey DESC])
-  issues.each do |issue|
-    puts issue.key
-    issue.transition 'Not merged' if issue.has_transition? 'Not merged'
-    issue.link
-  end
+    ORDER BY priority DESC, issuekey DESC]
+  ).each(&:link)
+end
+
+issues = release.all_deploys do |issue|
+  issue.tags?(SimpleConfig.jira.tags.field, SimpleConfig.jira.tags.deploy)
 end
 
 badissues = {}
@@ -66,10 +60,10 @@ release_branch = "#{opts[:release]}-#{opts[:postfix]}"
 source = opts[:source]
 
 # rubocop:disable Metrics/BlockNesting
-issues = release.deploys
-puts issues.size
+puts "Number of issues: #{issues.size}"
 issues.each do |issue|
-  puts issue.key
+  puts "Working on #{issue.key}"
+  issue.transition 'Not merged' if issue.has_transition? 'Not merged'
   has_merges = false
   merge_fail = false
   if issue.related['pullRequests'].empty?

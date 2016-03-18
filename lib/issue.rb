@@ -84,6 +84,33 @@ module JIRA
       def deploys
         client.Issue.jql(%(issue in linkedIssues(#{key},"deployes")))
       end
+
+      # rubocop:disable MethodLength
+      def all_deploys(&block)
+        if block_given?
+          if yield self
+            puts "Issue #{key} skipped by filter"
+            return []
+          end
+        end
+        result = [self]
+        if deploys.any?
+          deploys.each do |issue|
+            result.concat issue.all_deploys(&block)
+          end
+        end
+        result
+      end
+      # rubocop:enable MethodLength
+
+      def tags?(fkey, val)
+        unless fields[fkey].nil?
+          fields[fkey].each do |customfield|
+            return true if customfield['value'] == val
+          end
+        end
+        false
+      end
     end
   end
 end
