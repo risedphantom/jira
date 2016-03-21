@@ -87,15 +87,16 @@ module JIRA
 
       # rubocop:disable MethodLength
       def all_deploys(&block)
+        result = []
         if block_given?
           if yield self
             puts "Issue #{key} skipped by filter"
-            return []
+            return result
           end
         end
-        result = [self]
         if deploys.any?
           deploys.each do |issue|
+            result.push issue
             result.concat issue.all_deploys(&block)
           end
         end

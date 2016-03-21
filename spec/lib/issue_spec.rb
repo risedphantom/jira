@@ -109,7 +109,7 @@ describe JIRA::Resource::Issue do
     allow(sub_issue).to receive(:deploys).and_return []
 
     expect(issue.all_deploys.class.name).to eq 'Array'
-    expect(issue.all_deploys).to include issue, issue_1, issue_2, sub_issue
+    expect(issue.all_deploys).to include issue_1, issue_2, sub_issue
   end
   it '.all_deploys should returns filtered issues' do
     issue = JIRA::Resource::Issue.new(@jira)
@@ -133,6 +133,6 @@ describe JIRA::Resource::Issue do
     allow(issue_1).to receive(:tags?).with('customtags', 'value').and_return true
     allow(issue_2).to receive(:tags?).with('customtags', 'value').and_return false
 
-    expect(issue.all_deploys { |i| i.tags?('customtags', 'value') }).to include issue, issue_2
+    expect(issue.all_deploys { |i| i.tags?('customtags', 'value') }).to include issue_2
   end
 end
