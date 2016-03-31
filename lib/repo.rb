@@ -144,20 +144,19 @@ class GitRepo
 
   # :nocov:
   def run_tests!
-    errors = ''
+    test_struct = Struct.new(:code, :out)
+    errors = test_struct.new
+    errors.code = 0
+    errors.out = ''
     @git.chdir do
-      out = ''
-      exit_code = 0
       t = Thread.new do
         puts 'NPM install'
-        puts `npm install 2>&1`
+        errors.out += `npm install 2>&1`
         puts 'NPM test'
-        out += `npm test 2>&1`
-        exit_code = $?.exitstatus # rubocop:disable Style/SpecialGlobalVars
+        errors.out += `npm test 2>&1`
+        errors.code = $?.exitstatus # rubocop:disable Style/SpecialGlobalVars
       end
       t.join
-      puts "NPM Test exit code: #{exit_code}"
-      errors << "Testing failed:\n\n#{out}" if exit_code.to_i > 0
     end
     errors
   end

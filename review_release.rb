@@ -1,4 +1,5 @@
 require 'simple_config'
+require 'colorize'
 require 'json'
 require 'git'
 require 'jira'
@@ -30,6 +31,7 @@ issue = jira.Issue.jql("key = #{triggered_issue}")
 raise "WTF??? Issue search returned #{issue.length} elements!" if (issue.is_a? Array) && (issue.length > 1)
 issue = issue[0] if issue.is_a? Array
 
+err_struct = Struct.new(:name, :detail)
 errors = []
 
 fail_release = false
@@ -43,7 +45,7 @@ branches.each do |branch|
   repo_name = branch['repository']['name']
   repo_url = branch['repository']['url']
   # Checkout repo
-  print "Working with #{repo_name}\n"
+  puts "Working with #{repo_name}".green
   g_rep = GitRepo.new repo_url, repo_name, workdir: WORKDIR
 
   g_rep.checkout 'master'
@@ -57,7 +59,7 @@ branches.each do |branch|
   end
 
   # g_rep.checkout branch_name
-  puts 'Merging new version'
+  puts 'Merging new version'.green
   g_rep.merge! "origin/#{branch_name}"
 
   # Try to merge master to branch
@@ -65,48 +67,48 @@ branches.each do |branch|
     begin
       g_rep.merge! 'master'
     rescue Git::GitExecuteError => e
-      errors << "Failed to merge master to branch #{branch_name}.
-Git had this to say: {noformat}#{e.message}{noformat}"
+      errors << err_struct.new('Merge', "Failed to merge master to branch #{branch_name}.
+Git had this to say: {noformat}#{e.message}{noformat}")
       fail_release = true
       g_rep.abort_merge!
     end
     g_rep.checkout branch_name
   end
 
-  puts 'JSCS/JSHint'
+  puts 'JSCS/JSHint'.green
 
   # JSCS; JSHint
   unless ENV['NO_JSCS']
     res_text = g_rep.check_diff 'HEAD'
     unless res_text.empty?
-      errors << "Checking branch #{branch_name}:\n{noformat}#{res_text}{noformat}"
+      errors << err_struct.new('JSCS/JSHint', "Checking branch #{branch_name}:\n{noformat}#{res_text}{noformat}")
       fail_release = true if FAIL_ON_JSCS
     end
   end
 
-  puts 'NPM Test'
+  puts 'NPM Test'.green
   # NPM test
   test_out = ''
   test_out = g_rep.run_tests! unless ENV['NO_TESTS']
-  unless test_out.empty?
+  if test_out.code > 0
     fail_release = true
-    errors << "{noformat}#{test_out}{noformat}"
+    errors << err_struct.new('NPM Test', "Exitcode: #{test_out.code} {noformat}#{test_out.out}{noformat}")
   end
 end
 
-comment_text = "Automatic code review complete.\n"
+comment_text = "Automatic code review complete.\n".green
 
 # If something failed:
 if fail_release
-  comment_text = "\nThere were some errors:\n#{errors.join("\n")}"
+  comment_text = "There were some errors:\n\t#{errors.map(&:name).join("\n\t")}".red
 
   # return issue to "In Progress"
   if issue.has_transition? TRANSITION
     puts 'TRANSITIONING DISABLED'
     issue.transition TRANSITION
   else
-    print "No transition #{TRANSITION} available."
-    comment_text = "Unable to transition issue to \"In Progress\" state.\n\n" + comment_text
+    puts "No transition #{TRANSITION} available.".red
+    comment_text = "Unable to transition issue to \"In Progress\" state.\n".red + comment_text
   end
 
 else
@@ -114,10 +116,19 @@ else
 JSCS/JSHint: #{ENV['NO_JSCS'] ? 'SKIPPED' : 'PASSED'}
 npm test: #{ENV['NO_TEST'] ? 'SKIPPED' : 'PASSED'}\n"
   unless errors.empty?
-    comment_text << "There were some errors:\n#{errors.join "\n"}"
+    comment_text << "There were some errors:\n#{errors.map(&:name).join("\n")}".red
   end
 end
 
+puts 'Errors:'.red unless errors.empty?
+errors.each do |error|
+  puts error.name.red
+  puts error.detail
+end
+
 comment_text << "\nBuild URL: #{ENV.fetch('BUILD_URL', 'none')}"
+puts 'Summary comment text:'.green
 puts comment_text
 issue.post_comment comment_text if post_to_ticket
+
+exit 1 unless error.empty?
