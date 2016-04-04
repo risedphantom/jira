@@ -10,22 +10,13 @@ require 'git'
 class GitRepo
   attr_reader :git
 
-  def initialize(url, name, opts = {})
+  def initialize(url, name = nil, opts = {})
+    name ||= Git::Utils.url_to_ssh(url).repo
     url = Git::Utils.url_to_ssh(url).to_s
     # Checkout or open repo
     Dir.chdir((opts[:workdir] || './')) do
-      @git = if File.writable? name
-               Git.open(name)
-             else
-               Git.clone(url, name, opts)
-             end
+      @git = Git.get_branch(url)
     end
-    # Fetch and clean repo
-    @git.fetch
-    @git.checkout 'master'
-    @git.pull
-    @git.reset_hard
-
     @has_jscs = nil
     @has_jshint = nil
   end
@@ -152,9 +143,10 @@ class GitRepo
       t = Thread.new do
         puts 'NPM install'
         errors.out += `npm install 2>&1`
+        errors.code += $?.exitstatus # rubocop:disable Style/SpecialGlobalVars
         puts 'NPM test'
         errors.out += `npm test 2>&1`
-        errors.code = $?.exitstatus # rubocop:disable Style/SpecialGlobalVars
+        errors.code += $?.exitstatus # rubocop:disable Style/SpecialGlobalVars
       end
       t.join
     end

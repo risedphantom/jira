@@ -36,52 +36,44 @@ errors = []
 
 fail_release = false
 
-branches = issue.related['branches']
+pullrequests = issue.pullrequests(SimpleConfig.git.to_h)
+                    .filter_by_status('OPEN')
+                    .filter_by_source_url(SimpleConfig.jira.issue)
 
-exit 0 if branches.empty?
+exit 0 if pullrequests.empty?
 
-branches.each do |branch|
-  branch_name = branch['name']
-  repo_name = branch['repository']['name']
-  repo_url = branch['repository']['url']
+pullrequests.each do |pr|
+  src_branch = pr.src.branch
+  dst_branch = pr.dst.branch
+
   # Checkout repo
-  puts "Working with #{repo_name}".green
-  g_rep = GitRepo.new repo_url, repo_name, workdir: WORKDIR
+  puts "Clone/Open with #{pr.dst.to_repo_s} branch #{dst_branch}".green
 
-  g_rep.checkout 'master'
-  g_rep.git.pull
-  g_rep.git.branch(branch_name).delete rescue Git::GitExecuteError # rubocop:disable Style/RescueModifier
   begin
-    g_rep.git.checkout branch_name
+    g_rep = GitRepo.new pr.dst.to_s
   rescue Git::GitExecuteError => e
-    puts "Branch #{branch_name} does not exist any more...\n#{e.message}"
+    puts "Branch #{dst_branch} does not exist any more...\n#{e.message}".red
     next
   end
 
-  # g_rep.checkout branch_name
-  puts 'Merging new version'.green
-  g_rep.merge! "origin/#{branch_name}"
-
-  # Try to merge master to branch
   unless ENV['NO_MERGE']
+    puts "Merging code from #{src_branch} version".green
     begin
-      g_rep.merge! 'master'
+      g_rep.merge! "origin/#{src_branch}"
     rescue Git::GitExecuteError => e
-      errors << err_struct.new('Merge', "Failed to merge master to branch #{branch_name}.
+      errors << err_struct.new('Merge', "Failed to merge #{src_branch} to branch #{dst_branch}.
 Git had this to say: {noformat}#{e.message}{noformat}")
       fail_release = true
       g_rep.abort_merge!
     end
-    g_rep.checkout branch_name
   end
-
-  puts 'JSCS/JSHint'.green
 
   # JSCS; JSHint
   unless ENV['NO_JSCS']
-    res_text = g_rep.check_diff 'HEAD'
+    puts 'Checking JSCS/JSHint'.green
+    res_text = g_rep.check_diff 'HEAD', 'HEAD~1'
     unless res_text.empty?
-      errors << err_struct.new('JSCS/JSHint', "Checking branch #{branch_name}:\n{noformat}#{res_text}{noformat}")
+      errors << err_struct.new('JSCS/JSHint', "Checking pullrequest '#{pr.name}':\n{noformat}#{res_text}{noformat}")
       fail_release = true if FAIL_ON_JSCS
     end
   end
@@ -131,4 +123,4 @@ puts 'Summary comment text:'.green
 puts comment_text
 issue.post_comment comment_text if post_to_ticket
 
-exit 1 unless error.empty?
+exit 1 unless errors.empty?

@@ -83,8 +83,7 @@ module JIRA
     end
 
     def repo
-      @repo ||= Git.get_branch dst.to_repo_s
-      @repo.reset_hard "origin/#{dst.branch}"
+      @repo ||= Git.get_branch dst.to_s
       @repo.merge "origin/#{src.branch}"
       @repo
     end
