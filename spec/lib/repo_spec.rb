@@ -86,8 +86,6 @@ describe 'GitRepo' do
 
       expect(@git_double).to receive(:merge_base).with('new_commit', 'master') { 'master' }
       expect(@git_double).to receive(:diff).with('master', 'new_commit') { [file] }
-      expect(@git_double).to receive(:revparse).with('HEAD')
-      expect(@git_double).to receive(:checkout).twice
       @git_repo.check_diff 'new_commit'
     end
   end

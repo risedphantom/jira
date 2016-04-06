@@ -98,15 +98,13 @@ class GitRepo
     diff = get_diff new_commit, old_commit
     puts "#{diff.each.to_a.length} files to check"
     out = []
-    checkout new_commit do
-      diff.each do |file|
-        ranges = diffed_lines file.patch
-        this_out = ''
-        next unless File.extname(file.path) == '.js'
-        this_out += check_jscs file.path, ranges
-        this_out += check_jshint file.path, ranges
-        out << this_out unless this_out.empty?
-      end
+    diff.each do |file|
+      ranges = diffed_lines file.patch
+      this_out = ''
+      next unless File.extname(file.path) == '.js'
+      this_out += check_jscs file.path, ranges
+      this_out += check_jshint file.path, ranges
+      out << this_out unless this_out.empty?
     end
     out.join "\n"
   end
