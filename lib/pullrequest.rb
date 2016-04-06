@@ -83,8 +83,7 @@ module JIRA
     end
 
     def repo
-      @repo ||= Git.get_branch dst.to_repo_s
-      @repo.reset_hard "origin/#{dst.branch}"
+      @repo ||= Git.get_branch dst.full_url
       @repo.merge "origin/#{src.branch}"
       @repo
     end
@@ -96,7 +95,7 @@ module JIRA
     def valid?(input)
       src = parse_url(input['source']['url'])
       dst = parse_url(input['destination']['url'])
-      raise 'Source and Destination repos in PR are different' unless src.to_repo_s == dst.to_repo_s
+      raise 'Source and Destination repos in PR are different' unless src.to_s == dst.to_s
     end
   end
 end

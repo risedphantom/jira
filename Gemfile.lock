@@ -19,7 +19,7 @@ GIT
 
 GIT
   remote: https://github.com/onetwotrip/ruby-git.git
-  revision: ddacbea18d6e29466dbcc37ab703c0fbc696e71b
+  revision: 1fa04ebb168cf3114033c9770057496609ffbbca
   specs:
     git (1.2.9.1)
 
@@ -41,6 +41,7 @@ GEM
     ast (2.2.0)
     codeclimate-test-reporter (0.5.0)
       simplecov (>= 0.7.1, < 1.0.0)
+    colorize (0.7.7)
     diff-lcs (1.2.5)
     docile (1.1.5)
     domain_name (0.5.20160310)
@@ -116,6 +117,7 @@ DEPENDENCIES
   SimpleConfig!
   addressable
   codeclimate-test-reporter
+  colorize
   git!
   java-properties
   jira!

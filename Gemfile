@@ -10,6 +10,7 @@ gem 'SimpleConfig', git: 'https://github.com/onetwotrip/SimpleConfig'
 gem 'addressable'
 gem 'java-properties'
 gem 'sendgrid-ruby'
+gem 'colorize'
 
 group :test, :development do
   gem 'rake'

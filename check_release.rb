@@ -6,7 +6,6 @@ require_relative 'lib/check'
 require_relative 'lib/repo'
 
 WORKDIR = SimpleConfig.git.workdir
-BASEURL = ENV.fetch('BB_URL', 'git@bitbucket.org:')
 EMAIL_FROM = SimpleConfig.sendgrid.from
 SG_USER = SimpleConfig.sendgrid.user
 SG_KEY = SimpleConfig.sendgrid.pass
@@ -25,7 +24,7 @@ print "Working with #{repo_name}\n"
 # get latest
 Dir.mkdir WORKDIR unless Dir.exist? WORKDIR
 
-g_rep = GitRepo.new BASEURL + payload['repository']['full_name'], repo_name, workdir: WORKDIR
+g_rep = GitRepo.new payload['repository']['links']['href'], workdir: WORKDIR
 
 unless payload['push']['changes'][0]['new']
   puts 'Branch was deleted, nothing to do'
