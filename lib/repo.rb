@@ -10,10 +10,7 @@ require 'git'
 class GitRepo
   attr_reader :git
 
-  def initialize(url, name = nil, opts = {})
-    name ||= Git::Utils.url_to_ssh(url).repo
-    url = Git::Utils.url_to_ssh(url).to_s
-    # Checkout or open repo
+  def initialize(url, opts = {})
     Dir.chdir((opts[:workdir] || './')) do
       @git = Git.get_branch(url)
     end

@@ -47,10 +47,10 @@ pullrequests.each do |pr|
   dst_branch = pr.dst.branch
 
   # Checkout repo
-  puts "Clone/Open with #{pr.dst.to_repo_s} branch #{dst_branch}".green
+  puts "Clone/Open with #{pr.dst} branch #{dst_branch}".green
 
   begin
-    g_rep = GitRepo.new pr.dst.to_s
+    g_rep = GitRepo.new pr.dst.full_url
   rescue Git::GitExecuteError => e
     puts "Branch #{dst_branch} does not exist any more...\n#{e.message}".red
     next
