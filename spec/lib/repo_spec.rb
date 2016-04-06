@@ -1,61 +1,17 @@
 require 'spec_helper'
 
 def create_test_object!
-  allow(File).to receive(:writable?).with('repo') { true }
-  allow(Git).to receive(:open).with('repo') { @git_double }
-  allow(Git).to receive(:clone)
-  allow(@git_double).to receive(:fetch)
-  allow(@git_double).to receive(:checkout).with('master')
+  allow(Git).to receive(:get_branch).with('git@git:some/repo.git') { @git_double }
   allow(@git_double).to receive(:pull)
-  allow(@git_double).to receive(:reset_hard)
+  allow(@git_double).to receive(:fetch)
   allow(@git_double).to receive(:dir) { './' }
-  g = GitRepo.new 'git@git:some/repo.git', 'repo'
-  expect(g.git).to eq(@git_double)
-  g
+  GitRepo.new 'git@git:some/repo.git'
 end
 
 describe 'GitRepo' do
   before :each do
     @git_double = double(:git_double)
     @git_repo = create_test_object!
-  end
-  describe 'initialize' do
-    it 'should not clone repo if it exists' do
-      expect(File).to receive(:writable?).with('repo') { true }
-      expect(Git).to receive(:open).with('repo') { @git_double }
-      expect(Git).not_to receive(:clone)
-      expect(@git_double).to receive(:fetch)
-      expect(@git_double).to receive(:checkout).with('master')
-      expect(@git_double).to receive(:pull)
-      expect(@git_double).to receive(:reset_hard)
-
-      g = GitRepo.new 'git@git:some/repo.git', 'repo'
-      expect(g.git).to eq(@git_double)
-    end
-    it 'should clone ssh repo if it does not exist' do
-      expect(File).to receive(:writable?).with('repo') { false }
-      expect(Git).to receive(:clone).with('git@git:some/repo.git', 'repo', {}) { @git_double }
-      expect(Git).not_to receive(:open)
-      expect(@git_double).to receive(:fetch)
-      expect(@git_double).to receive(:checkout).with('master')
-      expect(@git_double).to receive(:pull)
-      expect(@git_double).to receive(:reset_hard)
-
-      g = GitRepo.new 'git@git:some/repo.git', 'repo'
-      expect(g.git).to eq(@git_double)
-    end
-    it 'should clone https repo if it does not exist' do
-      expect(File).to receive(:writable?).with('repo') { false }
-      expect(Git).to receive(:clone).with('git@git.com:vendor/repo.git', 'repo', {}) { @git_double }
-      expect(Git).not_to receive(:open)
-      expect(@git_double).to receive(:fetch)
-      expect(@git_double).to receive(:checkout).with('master')
-      expect(@git_double).to receive(:pull)
-      expect(@git_double).to receive(:reset_hard)
-
-      g = GitRepo.new 'https://git.com/vendor/repo.git', 'repo'
-      expect(g.git).to eq(@git_double)
-    end
   end
 
   describe 'delete_branch!' do
@@ -82,7 +38,6 @@ describe 'GitRepo' do
       expect(@git_double).to receive(:branch).with('dst-branch').exactly(3).times { dst_bd }
       expect(dst_bd).to receive(:checkout).twice
 
-      expect(@git_double).to receive(:fetch)
       expect(@git_double).to receive(:merge)
       expect(@git_repo).to receive(:delete_branch!).with('dst-branch')
       @git_repo.prepare_branch 'src-branch', 'dst-branch'
