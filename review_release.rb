@@ -7,8 +7,6 @@ require_relative 'lib/check'
 require_relative 'lib/repo'
 require_relative 'lib/issue'
 
-WORKDIR = SimpleConfig.git.workdir
-
 post_to_ticket = ENV.fetch('ROOT_BUILD_CAUSE_REMOTECAUSE', nil) == 'true' ? true : false
 
 fail_on_jscs = ENV.fetch('FAIL_ON_JSCS', false)
@@ -16,7 +14,9 @@ FAIL_ON_JSCS = fail_on_jscs ? !fail_on_jscs.empty? : false
 
 TRANSITION = 'WTF'.freeze
 
+WORKDIR = SimpleConfig.git.workdir
 Dir.mkdir WORKDIR unless Dir.exist? WORKDIR
+Dir.chdir WORKDIR || './'
 
 # Workflow
 # Collect data about release and Issue

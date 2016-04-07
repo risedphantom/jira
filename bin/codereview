@@ -6,6 +6,10 @@ require 'issue'
 require 'ottinfra/sendmail'
 require 'simple_config'
 
+WORKDIR = SimpleConfig.git.workdir
+Dir.mkdir WORKDIR unless Dir.exist? WORKDIR
+Dir.chdir WORKDIR || './'
+
 unless SimpleConfig.jira.issue
   puts "CodeReview: No issue - no cry!\n"
   exit 2

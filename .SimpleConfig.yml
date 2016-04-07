@@ -19,4 +19,4 @@ jira:
 git:
   reviewer: <%= ENV['GITATTR_REVIEWER'] %>
   reviewer_key: <%= ENV.fetch('GITATTR_REVIEWER_KEY', 'reviewer.mail') %>
-  workdir: <%= ENV.fetch('WORKDIR', '../repos/') %>
+  workdir: <%= ENV.fetch('WORKDIR', './repos/') %>

@@ -10,10 +10,8 @@ require 'git'
 class GitRepo
   attr_reader :git
 
-  def initialize(url, opts = {})
-    Dir.chdir((opts[:workdir] || './')) do
-      @git = Git.get_branch(url)
-    end
+  def initialize(url)
+    @git = Git.get_branch(url)
     @has_jscs = nil
     @has_jshint = nil
   end
