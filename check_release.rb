@@ -24,16 +24,17 @@ WORKDIR = SimpleConfig.git.workdir
 Dir.mkdir WORKDIR unless Dir.exist? WORKDIR
 Dir.chdir WORKDIR || './'
 
-g_rep = GitRepo.new payload['repository']['links']['href']
-
 unless payload['push']['changes'][0]['new']
   puts 'Branch was deleted, nothing to do'
   exit 0
 end
 
 changes = payload['push']['changes'][0]
+repo_url = hanges['new']['links']['html']['href']
 new_commit = changes['new']['target']['hash']
 old_commit = changes.dig('old', 'target', 'hash') || 'master'
+
+g_rep = GitRepo.new repo_url
 
 puts "Old: #{old_commit}; new: #{new_commit}"
 author_name = g_rep.git.gcommit(new_commit).author.name
