@@ -40,7 +40,10 @@ pullrequests = issue.pullrequests(SimpleConfig.git.to_h)
                     .filter_by_status('OPEN')
                     .filter_by_source_url(SimpleConfig.jira.issue)
 
-exit 0 if pullrequests.valid?
+unless pullrequests.valid?
+  issue.post_comment p("ReviewRelease: #{pullrequests.valid_msg}")
+  exit
+end
 
 pullrequests.each do |pr|
   src_branch = pr.src.branch
