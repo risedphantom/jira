@@ -40,7 +40,7 @@ pullrequests = issue.pullrequests(SimpleConfig.git.to_h)
                     .filter_by_status('OPEN')
                     .filter_by_source_url(SimpleConfig.jira.issue)
 
-exit 0 if pullrequests.empty?
+exit 0 if pullrequests.valid?
 
 pullrequests.each do |pr|
   src_branch = pr.src.branch
