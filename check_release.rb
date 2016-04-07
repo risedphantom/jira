@@ -5,7 +5,6 @@ require 'sendgrid-ruby'
 require_relative 'lib/check'
 require_relative 'lib/repo'
 
-WORKDIR = SimpleConfig.git.workdir
 EMAIL_FROM = SimpleConfig.sendgrid.from
 SG_USER = SimpleConfig.sendgrid.user
 SG_KEY = SimpleConfig.sendgrid.pass
@@ -21,10 +20,11 @@ payload = JSON.parse ENV['payload']
 repo_name = payload['repository']['name']
 print "Working with #{repo_name}\n"
 
-# get latest
+WORKDIR = SimpleConfig.git.workdir
 Dir.mkdir WORKDIR unless Dir.exist? WORKDIR
+Dir.chdir WORKDIR || './'
 
-g_rep = GitRepo.new payload['repository']['links']['href'], workdir: WORKDIR
+g_rep = GitRepo.new payload['repository']['links']['href']
 
 unless payload['push']['changes'][0]['new']
   puts 'Branch was deleted, nothing to do'
