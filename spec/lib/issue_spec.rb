@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'yaml'
 
 describe JIRA::Resource::Issue do
   open_pr = { 'pullRequests' => [

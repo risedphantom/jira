@@ -32,8 +32,6 @@ end
 # Create mails
 mailer = OttInfra::SendMail.new SimpleConfig.sendgrid.to_h
 
-require 'yaml'
-
 pullrequests.each do |review|
   review.send_notify do |msg|
     mailer.add SimpleConfig.sendgrid.to_h.merge message: msg
