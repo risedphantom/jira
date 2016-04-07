@@ -1,3 +1,4 @@
+require 'tests'
 require 'git'
 require 'erb'
 
@@ -53,7 +54,7 @@ module JIRA
     end
 
     def send_notify
-      yield ERB.new(File.read('views/review_mail.erb')).result(binding) unless reviewers.empty?
+      yield ERB.new(File.read("#{Ott.root}/views/review_mail.erb")).result(binding) unless reviewers.empty?
     end
 
     private

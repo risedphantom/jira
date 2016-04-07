@@ -30,7 +30,7 @@ unless payload['push']['changes'][0]['new']
 end
 
 changes = payload['push']['changes'][0]
-repo_url = hanges['new']['links']['html']['href']
+repo_url = changes['new']['links']['html']['href']
 new_commit = changes['new']['target']['hash']
 old_commit = changes.dig('old', 'target', 'hash') || 'master'
 
