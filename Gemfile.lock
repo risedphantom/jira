@@ -19,7 +19,7 @@ GIT
 
 GIT
   remote: https://github.com/onetwotrip/ruby-git.git
-  revision: 38919dda86619796d317082bb8cfe2dbd7d69714
+  revision: 90f24388da03999654c8730cc1aa1d1946bfff11
   specs:
     git (1.2.9.1)
 
