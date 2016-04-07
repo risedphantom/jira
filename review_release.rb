@@ -65,7 +65,7 @@ pullrequests.each do |pr|
       g_rep.merge! "origin/#{src_branch}"
     rescue Git::GitExecuteError => e
       errors << err_struct.new('Merge', "Failed to merge #{src_branch} to branch #{dst_branch}.
-Git had this to say: {noformat}#{e.message}{noformat}")
+Git had this to say:\n{noformat}\n#{e.message}\n{noformat}")
       fail_release = true
       g_rep.abort_merge!
     end
@@ -76,7 +76,7 @@ Git had this to say: {noformat}#{e.message}{noformat}")
     puts 'Checking JSCS/JSHint'.green
     res_text = g_rep.check_diff 'HEAD', 'HEAD~1'
     unless res_text.empty?
-      errors << err_struct.new('JSCS/JSHint', "Checking pullrequest '#{pr.name}':\n{noformat}#{res_text}{noformat}")
+      errors << err_struct.new('JSCS/JSHint', "Checking pullrequest '#{pr.name}':\n{noformat}\n#{res_text}\n{noformat}")
       fail_release = true if FAIL_ON_JSCS
     end
   end
@@ -87,32 +87,28 @@ Git had this to say: {noformat}#{e.message}{noformat}")
   test_out = g_rep.run_tests! unless ENV['NO_TESTS']
   if test_out.code > 0
     fail_release = true
-    errors << err_struct.new('NPM Test', "Exitcode: #{test_out.code} {noformat}#{test_out.out}{noformat}")
+    errors << err_struct.new('NPM Test', "Exitcode: #{test_out.code}\n{noformat}\n#{test_out.out}\n{noformat}")
   end
 end
 
-comment_text = "Automatic code review complete.\n".green
-
 # If something failed:
 if fail_release
-  comment_text = "There were some errors:\n\t#{errors.map(&:name).join("\n\t")}".red
-
+  comment_text = "There were some errors:\n\t#{errors.map(&:name).join("\n\t")}"
   # return issue to "In Progress"
   if issue.has_transition? TRANSITION
     puts 'TRANSITIONING DISABLED'
     issue.transition TRANSITION
   else
     puts "No transition #{TRANSITION} available.".red
-    comment_text = "Unable to transition issue to \"In Progress\" state.\n".red + comment_text
+    comment_text = "Unable to transition issue to \"In Progress\" state.\n" + comment_text
   end
-
 else
-  comment_text << "\nMerge master: #{ENV['NO_MERGE'] ? 'SKIPPED' : 'PASSED'}
+  comment_text = <<EOS
+Automatic code review complete.
+Merge master: #{ENV['NO_MERGE'] ? 'SKIPPED' : 'PASSED'}
 JSCS/JSHint: #{ENV['NO_JSCS'] ? 'SKIPPED' : 'PASSED'}
-npm test: #{ENV['NO_TEST'] ? 'SKIPPED' : 'PASSED'}\n"
-  unless errors.empty?
-    comment_text << "There were some errors:\n#{errors.map(&:name).join("\n")}".red
-  end
+npm test: #{ENV['NO_TEST'] ? 'SKIPPED' : 'PASSED'}
+EOS
 end
 
 puts 'Errors:'.red unless errors.empty?
