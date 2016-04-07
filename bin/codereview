@@ -1,6 +1,5 @@
 #!/usr/bin/env ruby
 require 'bundler/setup'
-require 'repo'
 require 'jira'
 require 'issue'
 require 'ottinfra/sendmail'
