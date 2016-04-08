@@ -106,7 +106,11 @@ else
   comment_text = <<EOS
 Automatic code review complete.
 Merge master: #{ENV['NO_MERGE'] ? 'SKIPPED' : 'PASSED'}
-JSCS/JSHint: #{ENV['NO_JSCS'] ? 'SKIPPED' : 'PASSED'}
+JSCS/JSHint: #{if ENV['NO_JSCS']
+                 'SKIPPED'
+               else
+                 ENV['FAIL_ON_JSCS'] ? 'IGNORED' : 'PASSED'
+               end}
 npm test: #{ENV['NO_TEST'] ? 'SKIPPED' : 'PASSED'}
 EOS
 end
