@@ -35,16 +35,18 @@ end
 
 options = { auth_type: :basic }.merge(opts.to_hash)
 client = JIRA::Client.new(options)
-
 release = client.Issue.find(opts[:release])
+
+excluded_projects = SimpleConfig.jira.excluded_projects.map { |project| '"' + project + '"' }.join ','
 
 unless release.deploys.any? && !opts[:ignorelinks]
   puts 'Deploys issue not found or ignored. Force JQL.'
   client.Issue.jql(
-    %[(project = Accounting AND status = Passed OR
-    status in ("Merge ready") OR (status in ( "In Release")
+    %[(status in ("Merge ready")
+    OR (status in ( "In Release")
     AND issue in linkedIssues(#{release.key},"deployes")))
-    AND project not in ("Servers & Services", Hotels, "Russian Railroad")
+    AND (Modes is Empty OR modes != "Manual Deploy")
+    AND project not in (#{excluded_projects})
     ORDER BY priority DESC, issuekey DESC]
   ).each(&:link)
 end
