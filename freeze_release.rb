@@ -44,19 +44,18 @@ release.related['branches'].each do |branch|
   repo_path = git_repo(branch['repository']['url'],
                        branch['repository']['name'],
                        opts)
+  # copy -pre to -release
   with repo_path do
     fetch
     checkout(old_branch)
     pull
-    branch(new_branch).checkout
-    checkout(old_branch)
-    branch(new_branch).delete
+    branch(new_branch).delete if is_branch?(new_branch)
     branch(new_branch).checkout
     puts diff(old_branch, new_branch).size
   end
 
   next unless opts[:force]
   puts "Pushing #{new_branch} and deleting #{old_branch} branch"
-  repo_path.push(repo_path.remote('origin'), new_branch)
-  clean_branch(repo_path, old_branch)
+  repo_path.push(repo_path.remote('origin'), new_branch) # push -release to origin
+  clean_branch(repo_path, old_branch) # delete -pre and push to origin
 end

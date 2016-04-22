@@ -1,4 +1,5 @@
 require 'simple_config'
+require 'colorize'
 require 'jira'
 require 'pp'
 require 'git'
@@ -33,11 +34,11 @@ opts = Slop.parse do |o|
   end
 end
 
+puts "Build release #{opts[:release]}".green
+
 options = { auth_type: :basic }.merge(opts.to_hash)
 client = JIRA::Client.new(options)
 release = client.Issue.find(opts[:release])
-
-excluded_projects = SimpleConfig.jira.excluded_projects.map { |project| '"' + project + '"' }.join ','
 
 unless release.deploys.any? && !opts[:ignorelinks]
   puts 'Deploys issue not found or ignored. Force JQL.'
@@ -46,7 +47,7 @@ unless release.deploys.any? && !opts[:ignorelinks]
     OR (status in ( "In Release")
     AND issue in linkedIssues(#{release.key},"deployes")))
     AND (Modes is Empty OR modes != "Manual Deploy")
-    AND project not in (#{excluded_projects})
+    AND project not in (#{SimpleConfig.jira.excluded_projects.to_sql})
     ORDER BY priority DESC, issuekey DESC]
   ).each(&:link)
 end
@@ -58,13 +59,14 @@ end
 badissues = {}
 repos = {}
 
-release_branch = "#{opts[:release]}-#{opts[:postfix]}"
+pre_release_branch = "#{opts[:release]}-#{opts[:postfix]}"
+release_branch = "#{opts[:release]}-release"
 source = opts[:source]
 
 # rubocop:disable Metrics/BlockNesting
 puts "Number of issues: #{issues.size}"
 issues.each do |issue|
-  puts "Working on #{issue.key}"
+  puts "Working on #{issue.key}".green
   issue.transition 'Not merged' if issue.has_transition? 'Not merged'
   has_merges = false
   merge_fail = false
@@ -77,27 +79,49 @@ issues.each do |issue|
   else
     issue.related['pullRequests'].each do |pullrequest|
       if pullrequest['status'] != 'OPEN'
-        puts "Not processing not OPEN PR #{pullrequest['url']}"
+        puts "Not processing not OPEN PR #{pullrequest['url']}".red
         next
       end
       if pullrequest['source']['branch'].match "^#{issue.key}"
+        # Need to remove follow each-do line.
+        # Branch name/url can be obtained from PR.
         issue.related['branches'].each do |branch|
           next unless branch['url'] == pullrequest['source']['url']
 
           repo_name = branch['repository']['name']
           repo_url = branch['repository']['url']
+          # Example of repos variable:
+          # {
+          #   "RepoName" => {
+          #     :url=>"https://github.com/Vendor/RepoName/",
+          #     :branches=>[],
+          #     :repo_base=> Git::Object
+          #   },
+          #   ...
+          # }
           repos[repo_name] ||= { url: repo_url, branches: [] }
           repos[repo_name][:repo_base] ||= git_repo(repo_url, repo_name, opts)
           repos[repo_name][:branches].push(issue: issue,
                                            pullrequest: pullrequest,
                                            branch: branch)
           repo_path = repos[repo_name][:repo_base]
-          prepare_branch(repo_path, source, release_branch, opts[:clean])
+          # Removal of existing branches
+          if repo_path.find_branch?(pre_release_branch)
+            puts "Found pre release branch: #{pre_release_branch}. Deleting...".red
+            repo_path.branch(pre_release_branch).delete_both
+          end
+          if repo_path.find_branch?(release_branch)
+            puts "Found release branch: #{release_branch}. Deleting...".red
+            repo_path.branch(release_branch).delete_both
+          end
+          # Merge master to release_branch (ex OTT-8703-pre)
+          prepare_branch(repo_path, source, pre_branch, opts[:clean])
           begin
             merge_message = "CI: merge branch #{branch['name']} to release "\
                             " #{opts[:release]}.  (pull request #{pullrequest['id']}) "
+            # Merge origin/branch (ex FE-429-Auth-Popup-fix) to pre_release_branch (ex OTT-8703-pre)
             repo_path.merge("origin/#{branch['name']}", merge_message)
-            puts "#{branch['name']} merged"
+            puts "#{branch['name']} merged".green
             has_merges = true
           rescue Git::GitExecuteError => e
             body = <<-BODY
@@ -109,7 +133,7 @@ issues.each do |issue|
             {noformat:title=Ошибка}
             Error #{e}
             {noformat}
-            Замержите ветку #{branch['name']} в ветку релиза #{release_branch}.
+            Замержите ветку #{branch['name']} в ветку релиза #{pre_release_branch}.
             После этого сообщите своему тимлиду, чтобы он перевёл задачу в статус in Release
             BODY
             if opts[:push]
@@ -139,16 +163,16 @@ issues.each do |issue|
   end
 end
 
-puts 'Repos:'
+puts 'Repos:'.green
 repos.each do |name, repo|
   puts name
   if opts[:push]
     local_repo = repo[:repo_base]
-    local_repo.push('origin', release_branch)
+    local_repo.push('origin', pre_release_branch)
   end
 end
 
-puts 'Not Merged'
+puts 'Not Merged'.red
 badissues.each_pair do |status, keys|
   puts "#{status}: #{keys.size}"
   keys.each { |i| puts i[:key] }
