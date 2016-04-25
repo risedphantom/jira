@@ -126,4 +126,4 @@ puts 'Summary comment text:'.green
 puts comment_text
 issue.post_comment comment_text if post_to_ticket
 
-exit 1 unless errors.empty?
+exit 1 if fail_release
