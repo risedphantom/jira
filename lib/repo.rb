@@ -210,19 +210,8 @@ class GitRepo
 end
 
 # :nocov:
-def git_repo(url, name, opts = {})
-  if File.writable?(name)
-    git_repo = Git.open(name)
-  else
-    uri = Addressable::URI.parse("#{url}.git")
-    uri.user ||= opts[:gitusername]
-    uri.password ||= opts[:gitpassword]
-    git_repo = Git.clone(uri, name, opts)
-  end
-  git_repo.fetch
-  git_repo.checkout 'master'
-  git_repo.pull
-  git_repo.reset_hard
+def git_repo(url, opts = {})
+  git_repo = Git.get_branch(url)
   # Removal of existing branches
   opts[:delete_branches].to_a.each do |branch|
     next unless git_repo.find_branch? branch

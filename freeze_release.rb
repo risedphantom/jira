@@ -42,7 +42,6 @@ release.related['branches'].each do |branch|
   new_branch = "#{release.key}-release-#{today}"
 
   repo_path = git_repo(branch['repository']['url'],
-                       branch['repository']['name'],
                        opts)
   # copy -pre to -release
   with repo_path do
