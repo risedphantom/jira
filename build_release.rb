@@ -101,7 +101,6 @@ issues.each do |issue|
           # }
           repos[repo_name] ||= { url: repo_url, branches: [] }
           repos[repo_name][:repo_base] ||= git_repo(repo_url,
-                                                    repo_name,
                                                     delete_branches: [pre_release_branch, release_branch])
           repos[repo_name][:branches].push(issue: issue,
                                            pullrequest: pullrequest,
