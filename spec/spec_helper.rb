@@ -18,10 +18,3 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 end
-
-shared_examples_for 'add and fail' do |pushed|
-  it 'push it to the fail' do
-    subject.add pushed
-    should_not be_valid
-  end
-end
