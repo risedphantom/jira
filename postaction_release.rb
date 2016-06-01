@@ -29,7 +29,7 @@ release = release[0] if release.is_a? Array
 
 pullrequests = release.pullrequests(SimpleConfig.git.to_h)
                       .filter_by_status('OPEN')
-                      .filter_by_source_url(SimpleConfig.jira.issue)
+                      .filter_by_source_url(opts[:release])
 
 unless pullrequests.valid?
   release.post_comment p("ReviewRelease: #{pullrequests.valid_msg}")
