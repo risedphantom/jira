@@ -1,0 +1,27 @@
+# Global requirements
+require 'addressable/uri'
+require 'colorize'
+require 'git'
+require 'issue'
+require 'java-properties'
+require 'jira'
+require 'json'
+require 'ottinfra/sendmail'
+require 'pp'
+require 'rest-client'
+require 'sendgrid-ruby'
+require 'simple_config'
+
+require 'check'
+require 'issue'
+require 'repo'
+
+# Scenarios
+require 'scenarios/buildrelease'
+require 'scenarios/checkrelease'
+require 'scenarios/codereview'
+require 'scenarios/deployrelease'
+require 'scenarios/freezerelease'
+require 'scenarios/postactionrelease'
+require 'scenarios/refreshrelease'
+require 'scenarios/reviewrelease'

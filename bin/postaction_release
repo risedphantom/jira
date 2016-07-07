@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'bundler/setup'
 require 'scenarios'
+require 'slop'
 
-Scenarios::CodeReview.new.run
+Scenarios::PostactionRelease.new.run
