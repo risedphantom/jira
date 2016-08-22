@@ -7,6 +7,13 @@ module Scenarios
       jira = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find SimpleConfig.jira.issue
 
+      # Get unique labels from release issue and all linked issues
+      labels = issue.labels
+      issue.linked_issues('deployes').each do |linked_issue|
+        labels.concat(linked_issue.labels)
+      end
+      labels = labels.uniq
+
       prs = issue.related['pullRequests']
       git_style_release = SimpleConfig.jira.issue.tr('-', ' ').downcase.capitalize
 
@@ -29,13 +36,8 @@ module Scenarios
           next
         end
         prop_values["#{repo_name.upcase}_BRANCH"] = pr['source']['branch']
-        project_labels = []
-        issue.linked_issues('deployes').each do |linked_issue|
-          linked_issue.labels.each do |label|
-            project_labels << label.remove("#{repo_name}_") if label.start_with? "#{repo_name}_"
-          end
-        end
-        prop_values["#{repo_name.upcase}_LABELS"] = project_labels.uniq.join(',') unless project_labels.empty?
+        project_labels = labels.select { |label| label.start_with? "#{repo_name}_" }.map { |label| label.remove("#{repo_name}_") }
+        prop_values["#{repo_name.upcase}_LABELS"] = project_labels.join(',') unless project_labels.empty?
       end
 
       pp prop_values
