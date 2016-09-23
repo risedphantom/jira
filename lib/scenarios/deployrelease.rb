@@ -15,6 +15,18 @@ module Scenarios
       labels = labels.uniq
 
       prs = issue.related['pullRequests']
+
+      puts 'Checking for wrong PRs names:'
+
+      prs.each do |pr|
+        prname = pr['name'].dup
+        if pr['name'].strip!.nil?
+          puts "[#{prname}] - OK"
+        else
+          puts "[#{prname}] - WRONG! Stripped. Bad guy: #{pr['author']['name']}"
+        end
+      end
+
       git_style_release = SimpleConfig.jira.issue.tr('-', ' ').downcase.capitalize
 
       prs.select! { |pr| (/^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/.match pr['name']) && pr['status'] != 'DECLINED' }
@@ -24,6 +36,7 @@ module Scenarios
         exit 1
       end
 
+      puts 'Selected PRs:'
       puts prs.map { |pr| pr['name'] }
       pp prs
 
