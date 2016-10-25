@@ -8,17 +8,19 @@ require 'pullrequests'
 module JIRA
   module Resource
     class Issue < JIRA::Base # :nodoc:
-      # Link current issue to opts[:release]
-      def link
+      # Link current issue to release_key
+      # :nocov:
+      def link(release_key)
+        li = client.Issuelink.build
         params = {
           type: { name: 'Deployed' },
-          inwardIssue: { key: opts[:release].to_s },
+          inwardIssue: { key: release_key },
           outwardIssue: { key: key.to_s },
         }
         return if opts[:dryrun]
-        RestClient.post create_endpoint('rest/api/2/issueLink').to_s,
-                        params.to_json, content_type: :json, accept: :json
+        li.save(params)
       end
+      # :nocov:
 
       # rubocop:disable Style/PredicateName
       def has_transition?(name)
