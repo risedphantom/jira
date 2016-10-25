@@ -17,7 +17,7 @@ module Scenarios
 
       if release.linked_issues('deployes').empty? || opts[:ignorelinks]
         puts 'Deploys issue not found or ignored. Force JQL.'
-        release.search_deployes.each(&:link)
+        release.search_deployes.each{ |issue| issue.link(opts[:release])}
       end
 
       # Unlink blocked issues:

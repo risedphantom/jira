@@ -56,13 +56,6 @@ describe JIRA::Resource::Issue do
     expect(issue.transition('name')).to eq true
   end
 
-  it '.link calls RestClient.post' do
-    expect(RestClient).to receive(:post)
-    issue = JIRA::Resource::Issue.new(@jira)
-    issue.define_singleton_method(:key) { 'key' }
-    issue.link
-  end
-
   it '.related returns related data' do
     expected = { 'detail' => [{ 'pullRequests' => [] }] }
     issue = JIRA::Resource::Issue.new(@jira)
