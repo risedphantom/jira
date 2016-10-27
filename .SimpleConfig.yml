@@ -34,3 +34,4 @@ release:
   filter: <%= ENV['RELEASE_FILTER'] %>
   release_name: <%= ENV['RELEASE_NAME'] %>
   project: <%= ENV['RELEASE_KEY'] %>
+  tasks: <%= ENV['RELEASE_TASKS'] %>
