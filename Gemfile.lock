@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/onetwotrip/SimpleConfig
-  revision: bd851aabf9b264374986339ad2e260c6ea49eb6a
+  revision: 934b89d4e542dc40d8be0d36f2a43f7e40d59521
   specs:
-    SimpleConfig (0.0.1)
+    SimpleConfig (0.0.2)
 
 GIT
   remote: https://github.com/onetwotrip/ott_infra-codereview.git
