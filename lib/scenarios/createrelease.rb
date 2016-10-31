@@ -8,12 +8,34 @@ module Scenarios
 
       client = JIRA::Client.new SimpleConfig.jira.to_h
 
-      issues = client.Issue.jql("filter=#{params[:filter]}")
-      issues_from_string = []
+      if !params.filter && !params.tasks
+        puts 'No necessary params - filter of tasks'.red
+        exit
+      end
+
+      if params.filter && !params.filter.empty?
+        begin
+          issues = client.Issue.jql("filter=#{params[:filter]}")
+        rescue JIRA::HTTPError => jira_error
+          error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
+
+          puts "Error in JIRA with the search by filter #{error_message}"
+        end
+
+      end
+
       if params.tasks && !params.tasks.empty?
+        issues_from_string = []
+
         params.tasks.split(',').each do |issue_key|
           # Try to find issue by key
-          issues_from_string << client.Issue.find(issue_key)
+          begin
+            issues_from_string << client.Issue.find(issue_key)
+          rescue JIRA::HTTPError => jira_error
+            error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
+
+            puts "Error in JIRA with the search by issue key #{error_message}"
+          end
         end
 
         issues = issues_from_string unless issues_from_string.empty?
