@@ -1,8 +1,8 @@
 GIT
   remote: https://github.com/onetwotrip/SimpleConfig
-  revision: 934b89d4e542dc40d8be0d36f2a43f7e40d59521
+  revision: 600820c14307fbca0b6390ffe7c02ba2a3d658ce
   specs:
-    SimpleConfig (0.0.2)
+    SimpleConfig (0.0.1)
 
 GIT
   remote: https://github.com/onetwotrip/ott_infra-codereview.git
@@ -142,4 +142,4 @@ DEPENDENCIES
   slop
 
 BUNDLED WITH
-   1.12.5
+   1.13.2
