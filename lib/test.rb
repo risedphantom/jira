@@ -42,7 +42,7 @@ module Ott
     def npmfull
       @repo.chdir do
         t = Thread.new do
-          @outs += `npm install && npm test 2>&1`
+          @outs += `npm install && npm list && npm test 2>&1`
           @code += $?.exitstatus
         end
         t.join
