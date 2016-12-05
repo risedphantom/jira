@@ -42,7 +42,14 @@ module Ott
     def npmfull
       @repo.chdir do
         t = Thread.new do
-          @outs += `npm install && npm list && npm test 2>&1`
+          @outs += 'NPM Install:'
+          @outs += `npm install 2>&1`
+          @code += $?.exitstatus
+          @outs += 'NPM List:'
+          @outs += `npm list 2>&1`
+          @code += $?.exitstatus
+          @outs += 'NPM Test:'
+          @outs += `npm test 2>&1`
           @code += $?.exitstatus
         end
         t.join
@@ -52,7 +59,14 @@ module Ott
     def npmpart
       @repo.chdir do
         t = Thread.new do
-          @outs += `npm install && npm list && npm test 2>&1`
+          @outs += 'NPM Install:'
+          @outs += `npm install 2>&1`
+          @code += $?.exitstatus
+          @outs += 'NPM List:'
+          @outs += `npm list 2>&1`
+          @code += $?.exitstatus
+          @outs += 'NPM Test:'
+          @outs += `npm test 2>&1`
           @code += $?.exitstatus
         end
         t.join
