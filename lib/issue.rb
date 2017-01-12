@@ -1,9 +1,10 @@
-require 'jira'
+require 'jira-ruby'
 require 'jira/client'
 require 'rest-client'
 require 'addressable/uri'
 require 'json'
 require 'pullrequests'
+require 'colorize'
 
 module JIRA
   module Resource
@@ -18,6 +19,7 @@ module JIRA
           outwardIssue: { key: key.to_s },
         }
         return if opts[:dryrun]
+        puts "Create Deployed link from #{key} to #{release_key}".green
         li.save(params)
       end
       # :nocov:
@@ -44,7 +46,7 @@ module JIRA
       def transition(status)
         transition = get_transition_by_name status
         raise ArgumentError, "Transition state #{status} not found!" unless transition
-        puts "#{key} changed status to #{transition.name}"
+        puts "#{key} changed status to #{transition.name}".green
         return if opts[:dryrun]
         action = transitions.build
         action.save!('transition' => { id: transition.id })
@@ -99,7 +101,7 @@ module JIRA
         result = []
         linked_issues('deployes').each do |issue|
           if block_given? && !(yield issue)
-            puts "Issue #{key} skipped by filter"
+            puts "Issue #{key} skipped by filter".green
             next
           end
           result.concat issue.dig_deployes(&filter).push(issue)
@@ -109,7 +111,7 @@ module JIRA
 
       def all_deployes(&filter)
         if block_given? && !(yield self)
-          puts "Issue #{key} skipped by filter"
+          puts "Issue #{key} skipped by filter".green
           return []
         end
         dig_deployes(&filter)
