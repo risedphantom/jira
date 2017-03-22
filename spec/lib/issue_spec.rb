@@ -1,6 +1,23 @@
 require 'spec_helper'
 
 describe JIRA::Resource::Issue do
+  let(:model) do
+    client_options = {
+      username: 'User',
+      password: 'Pass',
+      site: 'http://site.org',
+      context_path: '/context'
+    }
+    jira = double(
+      JIRA::Client, options: client_options,
+                    Transition: JIRA::Resource::Transition,
+                    Issue: JIRA::Resource::Issue
+    )
+    issue = JIRA::Resource::Issue.new(jira)
+    issue.instance_variable_set(:@attrs, fields: { key: 'ISSUE' }, 'key' => 'ISSUE-001')
+    issue
+  end
+
   open_pr = { 'pullRequests' => [
     { 'source' => { 'url' => 'https://bb.org/org/repo/branch/OTT-0001' },
       'destination' => { 'url' => 'https://bb.org/org/repo/branch/master' },
@@ -21,6 +38,26 @@ describe JIRA::Resource::Issue do
                     Transition: JIRA::Resource::Transition,
                     Issue: JIRA::Resource::Issue
     )
+  end
+
+  describe 'rollback' do
+    subject { model.rollback }
+    it do
+      allow(model).to receive(:has_transition?).and_return(true)
+      allow(model).to receive(:transition).and_return(true)
+      branch = double(Tinybucket::Model::Branch, name: '-pre',
+                                                 target: { 'repository' => { 'full_name' => 'owner/repo' } },
+                                                 destroy: true)
+      allow(model).to receive(:branches).and_return([branch])
+      pr = double(Tinybucket::Model::PullRequest, title: 'Test PR',
+                                                  state: 'OPEN',
+                                                  destination: { 'repository' => { 'full_name' => 'owner/repo' } },
+                                                  decline: true)
+      allow(model).to receive(:api_pullrequests).and_return([pr])
+      expect(subject)
+      expect(branch).to have_received(:destroy)
+      expect(pr).to     have_received(:decline)
+    end
   end
 
   it '.pullrequests should return PullRequests' do

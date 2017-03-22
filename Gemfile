@@ -11,6 +11,7 @@ gem 'addressable'
 gem 'java-properties'
 gem 'sendgrid-ruby'
 gem 'colorize'
+gem 'tinybucket', git: 'https://github.com/dshmelev/tinybucket'
 
 group :development do
   gem 'overcommit'
