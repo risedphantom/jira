@@ -5,6 +5,8 @@ require 'addressable/uri'
 require 'json'
 require 'pullrequests'
 require 'colorize'
+require 'common/logger'
+require 'common/bitbucket'
 
 module JIRA
   module Resource
@@ -22,7 +24,44 @@ module JIRA
         puts "Create Deployed link from #{key} to #{release_key}".green
         li.save(params)
       end
+
+      def branches
+        related['branches'].map do |branch|
+          repo = Git::Utils.url_to_ssh branch['url']
+          BITBUCKET.repo(repo.owner, repo.slug)
+                   .branch(repo.branch)
+        end
+      end
+
+      def api_pullrequests
+        related['pullRequests'].map do |pullrequest|
+          repo = Git::Utils.url_to_ssh pullrequest['url']
+          BITBUCKET.repo(repo.owner, repo.slug)
+                   .pull_request(pullrequest['id'][/\d+/])
+        end
+      end
       # :nocov:
+
+      def rollback
+        LOGGER.info "Rollback issue #{key} to Merge Ready"
+        if has_transition? 'Not merged'
+          branches.each do |branch|
+            if branch.name =~ /-(pre|release)$/
+              LOGGER.info "Rollback branch '#{branch.name}' from '#{branch.target['repository']['full_name']}'"
+              branch.destroy
+            end
+          end
+          api_pullrequests.each do |pr|
+            if pr.state == 'OPEN'
+              LOGGER.info "Decline pullrequest '#{pr.title}' from '#{pr.destination['repository']['full_name']}'"
+              pr.decline
+            end
+          end
+          transition 'Not merged'
+        else
+          LOGGER.warn "Failed. Has no 'Not merged' translition"
+        end
+      end
 
       # rubocop:disable Style/PredicateName
       def has_transition?(name)

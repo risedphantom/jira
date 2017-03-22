@@ -9,6 +9,8 @@ CodeClimate::TestReporter.start
 require 'issue'
 require 'repo'
 require 'pullrequests'
+require 'tinybucket'
+require 'common/logger'
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
