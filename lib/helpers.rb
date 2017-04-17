@@ -33,7 +33,7 @@ module Ott
         if branch_states.empty?
           LOGGER.warn "Branch #{branch_path} doesn't have builds"
         elsif branch_states.delete_if { |s| s == 'SUCCESSFUL' }.any?
-          LOGGER.error "Branch #{branch_path} has buildfail"
+          LOGGER.error "Branch #{branch_path} has no successful status"
         end
       end
     end
