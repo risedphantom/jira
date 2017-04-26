@@ -15,7 +15,12 @@ module Scenarios
 
       # Post comment
       comment = LOGGER.history_comment(EnhancedLogger::WARN)
-      issue.post_comment comment.empty? ? 'OK' : comment
+      if comment.empty?
+        issue.post_comment 'OK'
+      else
+        issue.post_comment comment
+        issue.transition 'WTF'
+      end
 
       # Send stricts
       Ott::StrictControl.run(issue)

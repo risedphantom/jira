@@ -29,13 +29,22 @@ module Ott
       issue.branches.each do |branch|
         branch_path = "#{branch.repo_owner}/#{branch.repo_slug}/#{branch.name}"
         LOGGER.info "Check Branch: #{branch_path}"
-        branch_states = branch.commits.take(1).first.build_statuses.collect.map(&:state)
-        if branch_states.empty?
+        if branch_states(branch).empty?
           LOGGER.warn "Branch #{branch_path} doesn't have builds"
-        elsif branch_states.delete_if { |s| s == 'SUCCESSFUL' }.any?
-          LOGGER.error "Branch #{branch_path} has no successful status"
+        else
+          while branch_states(branch).select { |s| s == 'INPROGRESS' }.any?
+            LOGGER.info "Branch #{branch_path} state INPROGRESS. Waiting..."
+            sleep 60
+          end
+          if branch_states(branch).delete_if { |s| s == 'SUCCESSFUL' }.any?
+            LOGGER.error "Branch #{branch_path} has no successful status"
+          end
         end
       end
+    end
+
+    def self.build_states(branch)
+      branch.commits.take(1).first.build_statuses.collect.map(&:state)
     end
   end
   # This module represents StrictControl
@@ -70,7 +79,7 @@ module Ott
       mailer = OttInfra::SendMail.new SimpleConfig.sendgrid.to_h
       mailer.add SimpleConfig.sendgrid.to_h.merge message: ERB.new(File.read("#{Ott::Helpers.root}/views/review_mail.erb")).result(b)
       if strict_control.empty?
-        puts 'CodeReview: No changes for review'
+        LOGGER.info 'CodeReview: No changes for review'
       else
         mailer.sendmail
       end
