@@ -21,7 +21,7 @@ module JIRA
           outwardIssue: { key: key.to_s },
         }
         return if opts[:dryrun]
-        puts "Create Deployed link from #{key} to #{release_key}".green
+        LOGGER.info "Create Deployed link from #{key} to #{release_key}"
         li.save(params)
       end
 
@@ -75,7 +75,7 @@ module JIRA
         available_transitions.each do |transition|
           return transition if transition.name == name
         end
-        nil
+        LOGGER.warn "[#{key}] Transition state #{name} not found!"
       end
 
       def opts
@@ -84,8 +84,8 @@ module JIRA
 
       def transition(status)
         transition = get_transition_by_name status
-        raise ArgumentError, "Transition state #{status} not found!" unless transition
-        puts "#{key} changed status to #{transition.name}".green
+        return unless transition
+        LOGGER.info "#{key} changed status to #{transition.name}"
         return if opts[:dryrun]
         action = transitions.build
         action.save!('transition' => { id: transition.id })
@@ -140,7 +140,7 @@ module JIRA
         result = []
         linked_issues('deployes').each do |issue|
           if block_given? && !(yield issue)
-            puts "Issue #{key} skipped by filter".green
+            LOGGER.info "Issue #{key} skipped by filter"
             next
           end
           result.concat issue.dig_deployes(&filter).push(issue)
@@ -150,7 +150,7 @@ module JIRA
 
       def all_deployes(&filter)
         if block_given? && !(yield self)
-          puts "Issue #{key} skipped by filter".green
+          LOGGER.info "Issue #{key} skipped by filter"
           return []
         end
         dig_deployes(&filter)
