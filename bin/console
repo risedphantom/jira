@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'bundler/setup'
-require 'repo'
+require 'scenarios'
 require 'irb'
 
 IRB.start
