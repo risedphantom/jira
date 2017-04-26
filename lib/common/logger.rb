@@ -18,6 +18,7 @@ class EnhancedLogger < Logger
   def add(severity, progname = nil, message = nil)
     @history[severity].push message
     super
+    nil
   end
 
   def close
