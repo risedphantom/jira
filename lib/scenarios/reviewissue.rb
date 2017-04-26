@@ -14,9 +14,10 @@ module Scenarios
       Ott::CheckBranchesBuildStatuses.run(issue)
 
       # Post comment
-      comment = LOGGER.history_comment(EnhancedLogger::WARN)
+      comment = LOGGER.history_comment(EnhancedLogger::ERROR)
       if comment.empty?
-        issue.post_comment 'OK'
+        LOGGER.info 'Review is OK. No errors'
+        issue.post_comment LOGGER.history_comment(EnhancedLogger::INFO)
       else
         issue.post_comment comment
         issue.transition 'WTF'
