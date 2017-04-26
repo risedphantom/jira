@@ -43,7 +43,7 @@ module Ott
       end
     end
 
-    def self.build_states(branch)
+    def self.branch_states(branch)
       branch.commits.take(1).first.build_statuses.collect.map(&:state)
     end
   end
