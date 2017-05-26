@@ -85,4 +85,14 @@ module Ott
       end
     end
   end
+
+  module CheckPullRequests
+    def self.run(issue)
+      if issue.api_pullrequests.nil?
+        LOGGER.error "Issue #{issue.key} has no Pull Requests"
+      else
+        LOGGER.info "Issue #{issue.key} have Pull Requests"
+      end
+    end
+  end
 end
