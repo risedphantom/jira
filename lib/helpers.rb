@@ -89,10 +89,13 @@ module Ott
   # This module represents CheckPullRequests
   module CheckPullRequests
     def self.run(issue)
-      if issue.api_pullrequests.nil?
-        LOGGER.error "Issue #{issue.key} has no Pull Requests"
+      prs = issue.api_pullrequests
+      if prs.empty?
+        LOGGER.error 'Issue has no Pull Requests'
       else
-        LOGGER.info "Issue #{issue.key} have Pull Requests"
+        prs.each do |pr|
+          LOGGER.info "Issue have PR #{pr.id}"
+        end
       end
     end
   end
