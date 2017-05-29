@@ -12,6 +12,7 @@ module Scenarios
 
       # Check builds status
       Ott::CheckBranchesBuildStatuses.run(issue)
+      Ott::CheckPullRequests.run(issue)
 
       # Post comment
       comment = LOGGER.history_comment(EnhancedLogger::ERROR)
