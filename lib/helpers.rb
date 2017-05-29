@@ -87,7 +87,6 @@ module Ott
   end
 
   # This module represents CheckPullRequests
-  # :nocov:
   module CheckPullRequests
     def self.run(issue)
       if issue.api_pullrequests.nil?
