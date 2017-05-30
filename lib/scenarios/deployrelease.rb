@@ -30,7 +30,10 @@ module Scenarios
       jira = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find SimpleConfig.jira.issue
 
-      prop_values = {}
+      prop_values = {
+        'STAGE' => ENV['STAGE'],
+        'PROJECTS' => {},
+      }
       # Get unique labels from release issue and all linked issues
       labels = issue.labels
       issue.linked_issues('deployes').each do |linked_issue|
@@ -87,12 +90,13 @@ module Scenarios
         selected.each do |proj|
           prop_values[proj] = 'true'
           prop_values["#{proj}_BRANCH"] = pr['source']['branch'] unless true?(ENV['LIKEPROD'])
+          prop_values['PROJECTS'][proj] = { 'ENABLE' => true, 'BRANCH' => pr['source']['branch'] }
         end
       end
 
       pp prop_values
 
-      JavaProperties.write prop_values, './.properties'
+      JavaProperties.write({ 'DEPLOY' => prop_values.to_json }, './.properties')
 
       exit 0
     end
