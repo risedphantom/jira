@@ -31,8 +31,9 @@ module Scenarios
       issue = jira.Issue.find SimpleConfig.jira.issue
 
       prop_values = {
-        'STAGE' => ENV['STAGE'],
         'PROJECTS' => {},
+        'ROLES' => JSON.parse(ENV['USER_ROLES']),
+        'STAGE' => ENV['STAGE'],
       }
       # Get unique labels from release issue and all linked issues
       labels = issue.labels
@@ -88,15 +89,15 @@ module Scenarios
           selected.push repo_dicts[repo_name].first || repo_name.upcase
         end
         selected.each do |proj|
-          prop_values[proj] = 'true'
-          prop_values["#{proj}_BRANCH"] = pr['source']['branch'] unless true?(ENV['LIKEPROD'])
-          prop_values['PROJECTS'][proj] = { 'ENABLE' => true, 'BRANCH' => pr['source']['branch'] }
+          prop_values['PROJECTS'][proj] = {}
+          prop_values['PROJECTS'][proj]['ENABLE'] = true
+          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['LIKEPROD'])
         end
       end
 
       pp prop_values
 
-      JavaProperties.write({ 'DEPLOY' => prop_values.to_json }, './.properties')
+      JavaProperties.write({ 'DEPLOY' => prop_values.to_json }, './env.properties')
 
       exit 0
     end
