@@ -135,10 +135,11 @@ module Scenarios
           issue.transition 'Merge to release'
         elsif merge_fail
           issue.transition 'Merge Fail'
+          puts "#{issue.key} was not merged!".red
         end
       end
 
-      puts 'Repos:'.green
+      puts 'Repos:'.green if repos
       repos.each do |name, repo|
         puts "Push '#{pre_release_branch}' to '#{name}' repo".green
         if opts[:push]
@@ -147,7 +148,7 @@ module Scenarios
         end
       end
 
-      puts 'Not Merged'.red
+      puts 'Not Merged:'.red if badissues
       badissues.each_pair do |status, keys|
         puts "#{status}: #{keys.size}"
         keys.each { |i| puts i[:key] }
