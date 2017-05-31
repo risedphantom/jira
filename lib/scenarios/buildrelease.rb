@@ -12,7 +12,6 @@ module Scenarios
     # rubocop:disable Metrics/CyclomaticComplexity
     # rubocop:disable Metrics/PerceivedComplexity
     # rubocop:disable Metrics/MethodLength
-    # rubocop:disable Metrics/BlockLength
     def run
       puts "Build release #{opts[:release]}".green
 
@@ -29,7 +28,7 @@ module Scenarios
       #   1) Get deployes issues of release
       #   2) Check status of blocked tasks of issues.
       #   3) If task hasn't necessary status - unlink issue from release
-      good_statuses = %w[Done Closed Fixed Rejected]
+      good_statuses = %w(Done Closed Fixed Rejected)
       release.issuelinks.each do |issuelink|
         next unless issuelink.type.name == 'Deployed' &&
                     issuelink.outwardIssue &&
