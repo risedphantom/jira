@@ -18,6 +18,7 @@ require 'issue'
 require 'repo'
 
 require 'common/logger'
+require 'common/util.rb'
 
 # Scenarios
 Dir[__dir__ + '/scenarios/*.rb'].each { |file| require file }

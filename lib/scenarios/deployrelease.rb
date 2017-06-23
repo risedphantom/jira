@@ -86,7 +86,7 @@ module Scenarios
         end
         selected.each do |proj|
           prop_values[proj] = 'true'
-          prop_values["#{proj}_BRANCH"] = pr['source']['branch']
+          prop_values["#{proj}_BRANCH"] = pr['source']['branch'] unless true?(ENV['LIKEPROD'])
         end
       end
 
