@@ -14,4 +14,16 @@ describe Ott::Helpers do
     BODY
     expect(Ott::Helpers.diffed_lines(diff)).to match_array [38..45, 56..62]
   end
+
+  it 'stores data to local file' do
+    some_data       = 'OTT-12' # sample issue
+    custom_filename = 'some_file2.txt'
+    full_path       = File.join(Dir.pwd, custom_filename)
+    double          = StringIO.new
+    allow(File).to receive(:open).with(full_path, 'w+').and_yield(double)
+    allow(File).to receive(:size).with(full_path)
+
+    Ott::Helpers.export_to_file(some_data, custom_filename)
+    expect(double.string).to eq(some_data)
+  end
 end
