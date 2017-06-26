@@ -20,6 +20,19 @@ module Ott
       puts "#{diff}\n Diff without marks or unknown marks!" if ranges.empty? && !diff.empty?
       ranges
     end
+
+    # export any data for Jenkins later use
+    def self.export_to_file(data, custom_filename = nil)
+      file_name = custom_filename || 'ruby_script_output.txt'
+      file_path = File.join(@root, file_name)
+
+      LOGGER.info "Exporting to #{file_path}"
+      # creating file in root, overwriting anything
+      File.open(file_path, 'w+') do |file|
+        file << data
+      end
+      LOGGER.info "Exported #{File.size(file_path)} bytes to '#{file_path}'"
+    end
   end
 
   # This module represents CheckBranchesBuildStatuses

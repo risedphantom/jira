@@ -6,7 +6,7 @@ module Scenarios
       issue.jql("filter=#{filter}")
     rescue JIRA::HTTPError => jira_error
       error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
-      puts "Error in JIRA with the search by filter #{error_message}".red
+      LOGGER.error "Error in JIRA with the search by filter #{error_message}"
       []
     end
 
@@ -20,7 +20,7 @@ module Scenarios
         rescue JIRA::HTTPError => jira_error
           error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
 
-          puts "Error in JIRA with the search by issue key #{error_message}".red
+          LOGGER.error "Error in JIRA with the search by issue key #{error_message}"
         end
       end
 
@@ -36,7 +36,7 @@ module Scenarios
       release
     rescue JIRA::HTTPError => jira_error
       error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
-      puts "Creation of release was failed with error #{error_message}".red
+      LOGGER.error "Creation of release was failed with error #{error_message}"
       raise error_message
     end
 
@@ -45,16 +45,16 @@ module Scenarios
       params = SimpleConfig.release
 
       unless params
-        puts 'No Release params in ENV'.red
+        LOGGER.error 'No Release params in ENV'
         exit
       end
 
       if !params.filter && !params.tasks
-        puts 'No necessary params - filter of tasks'.red
+        LOGGER.error 'No necessary params - filter of tasks'
         exit
       end
 
-      puts "Create release from filter #{params[:filter]} with name #{params[:name]}".green
+      LOGGER.info "Create release from filter #{params[:filter]} with name #{params[:name]}"
 
       client = JIRA::Client.new SimpleConfig.jira.to_h
 
@@ -71,11 +71,13 @@ module Scenarios
         exit
       end
 
-      puts "Start to link issues to release #{release.key}".green
+      LOGGER.info "Start to link issues to release #{release.key}"
 
       issues.each { |issue| issue.link(release.key) }
 
-      puts "Create new release #{release.key} from filter #{params[:filter]}".green
+      LOGGER.info "Created new release #{release.key} from filter #{params[:filter]}"
+      LOGGER.info "Storing '#{release.key}' to file, to refresh buildname in Jenkins"
+      Ott::Helpers.export_to_file(release.key, 'release_name.txt')
     end
     # :nocov:
   end
