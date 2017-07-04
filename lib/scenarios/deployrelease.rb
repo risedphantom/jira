@@ -91,7 +91,8 @@ module Scenarios
         selected.each do |proj|
           prop_values['PROJECTS'][proj] = {}
           prop_values['PROJECTS'][proj]['ENABLE'] = true
-          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['LIKEPROD'])
+          # If ROLLBACK true deploy without version (LIKEPROD)
+          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
         end
       end
 
