@@ -36,7 +36,7 @@ module Scenarios
         'STAGE' => ENV['STAGE'],
       }
       # Set username
-      prop_values['DEPLOY_USER'] = ENV['user_id'].empty? ? ENV['BUILD_USER_ID'] : ENV['user_id']
+      prop_values['DEPLOY_USER'] = ENV.fetch('user_id', ENV['BUILD_USER_ID'])
 
       # Get unique labels from release issue and all linked issues
       labels = issue.labels
