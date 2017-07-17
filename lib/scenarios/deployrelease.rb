@@ -35,6 +35,9 @@ module Scenarios
         'ROLES' => JSON.parse(ENV['USER_ROLES']),
         'STAGE' => ENV['STAGE'],
       }
+      # Set username
+      prop_values['DEPLOY_USER'] = ENV['user_id'].empty? ? ENV['BUILD_USER_ID'] : ENV['user_id']
+
       # Get unique labels from release issue and all linked issues
       labels = issue.labels
       issue.linked_issues('deployes').each do |linked_issue|
