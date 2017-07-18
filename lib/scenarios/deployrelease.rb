@@ -31,12 +31,11 @@ module Scenarios
       issue = jira.Issue.find SimpleConfig.jira.issue
 
       prop_values = {
+        'DEPLOY_USER' => ENV['DEPLOY_USER'],
         'PROJECTS' => {},
         'ROLES' => JSON.parse(ENV['USER_ROLES']),
         'STAGE' => ENV['STAGE'],
       }
-      # Set username
-      prop_values['DEPLOY_USER'] = ENV.fetch('user_id', ENV['BUILD_USER_ID'])
 
       # Get unique labels from release issue and all linked issues
       labels = issue.labels
