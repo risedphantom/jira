@@ -29,7 +29,7 @@ module Scenarios
 
       jira = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find SimpleConfig.jira.issue
-
+      all_projects = YAML.load_file(ENV['PROJECTS_CONF']).map { |_, v| v['projects'] }.flatten.sort.uniq
       prop_values = {
         'DEPLOY_USER' => ENV['DEPLOY_USER'],
         'PROJECTS' => {},
@@ -91,10 +91,20 @@ module Scenarios
           selected.push repo_dicts[repo_name].first || repo_name.upcase
         end
         selected.each do |proj|
+          next unless all_projects.include? proj
           prop_values['PROJECTS'][proj] = {}
           prop_values['PROJECTS'][proj]['ENABLE'] = true
           # If ROLLBACK true deploy without version (LIKEPROD)
           prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
+        end
+      end
+
+      if true?(ENV['LIKEPROD'])
+        all_projects.each do |proj|
+          next if prop_values['PROJECTS'][proj]
+          prop_values['PROJECTS'][proj] = {}
+          prop_values['PROJECTS'][proj]['ENABLE'] = true
+          prop_values['PROJECTS'][proj]['BRANCH'] = ''
         end
       end
 
