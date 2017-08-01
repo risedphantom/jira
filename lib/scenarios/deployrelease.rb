@@ -3,33 +3,10 @@ module Scenarios
   # DeployRelease scenario
   class DeployRelease
     def run
-      repo_dicts = Hash.new []
-      repo_dicts['12trip']               = %w(OTT)
-      repo_dicts['12trip-railways.node'] = %w(BLACKBOX)
-      repo_dicts['12trip-whitelabel']    = %w(SOCIAL)
-      repo_dicts['12trip_hotels']        = %w(HOTELS)
-      repo_dicts['b2b_app']              = %w(B2B)
-      repo_dicts['bundle-back']          = %w(BUNDLES)
-      repo_dicts['front-avia']           = %w(XJSX_AVIA)
-      repo_dicts['front-cars']           = %w(XJSX_CARS)
-      repo_dicts['front-hotels']         = %w(XJSX_HOTELS)
-      repo_dicts['front-packages']       = %w(XJSX_PACKAGES)
-      repo_dicts['front-railways']       = %w(XJSX_RAILWAYS)
-      repo_dicts['front-tours']          = %w(XJSX_TOURS)
-      repo_dicts['front-travel-vtb24']   = %w(FRONT_TRAVEL_VTB24)
-      repo_dicts['hotels_backoffice']    = %w(FRONT_HOTELS_BO)
-      repo_dicts['m-12trip']             = %w(MOBILE)
-      repo_dicts['m-12trip_vk']          = %w(MFRONT_12TRIP_VK)
-      repo_dicts['m-hotels']             = %w(MHOTELS)
-      repo_dicts['renderer']             = %w(PASSBOOK)
-      repo_dicts['seo_hotels']           = %w(SEOHOTELS)
-      repo_dicts['seo_pages']            = %w(SEOPAGES)
-      repo_dicts['twiket-live']          = %w(TLIVE)
-      repo_dicts['twiket_backoffice']    = %w(BO)
-
       jira = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find SimpleConfig.jira.issue
-      all_projects = YAML.load_file(ENV['PROJECTS_CONF']).map { |_, v| v['projects'] }.flatten.sort.uniq
+      projects_conf = YAML.load_file(ENV['PROJECTS_CONF'])
+      all_projects = projects_conf.map { |_, v| v['projects'] }.flatten.sort.uniq
       prop_values = {
         'DEPLOY_USER' => ENV['DEPLOY_USER'],
         'PROJECTS' => {},
@@ -81,16 +58,20 @@ module Scenarios
       pp prs
 
       prs.each do |pr|
-        repo_name = pr['url'].split('/')[-3]
+        repo_name = pr['url'].split('/')[3..4].join('/')
         unless pr['destination']['branch'].include? 'master'
           puts "WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
           next
         end
-        selected = (repo_dicts[repo_name] & labels.map(&:upcase))
-        if selected.empty?
-          selected.push repo_dicts[repo_name].first || repo_name.upcase
+        projects_conf.select { |k, _| k.include? repo_name }.each do |_, p|
+          proj = p['projects']
+          prop_values['PROJECTS'][proj] = {}
+          prop_values['PROJECTS'][proj]['ENABLE'] = true
+          # If ROLLBACK true deploy without version (LIKEPROD)
+          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
         end
-        selected.each do |proj|
+
+        labels.map(&:upcase).each do |proj|
           next unless all_projects.include? proj
           prop_values['PROJECTS'][proj] = {}
           prop_values['PROJECTS'][proj]['ENABLE'] = true
