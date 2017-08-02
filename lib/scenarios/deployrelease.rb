@@ -8,6 +8,7 @@ module Scenarios
       projects_conf = YAML.load_file(ENV['PROJECTS_CONF'])
       all_projects = projects_conf.map { |_, v| v['projects'] }.flatten.sort.uniq
       prop_values = {
+        'CHECKMASTER' => ENV['CHECKMASTER'],
         'DEPLOY_USER' => ENV['DEPLOY_USER'],
         'PROJECTS' => {},
         'ROLES' => JSON.parse(ENV['USER_ROLES']),
