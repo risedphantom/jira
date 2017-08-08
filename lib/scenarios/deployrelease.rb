@@ -59,18 +59,16 @@ module Scenarios
       pp prs
 
       prs.each do |pr|
-        repo_name = pr['url'].split('/')[3..4].join('/')
+        repo_name = Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git'
         unless pr['destination']['branch'].include? 'master'
           puts "WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
           next
         end
-        projects_conf.select { |k, _| k.include? repo_name }.each do |_, p|
-          p['projects'].each do |proj|
-            prop_values['PROJECTS'][proj] = {}
-            prop_values['PROJECTS'][proj]['ENABLE'] = true
-            # If ROLLBACK true deploy without version (LIKEPROD)
-            prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
-          end
+        projects_conf[repo_name]['projects'].each do |proj|
+          prop_values['PROJECTS'][proj] = {}
+          prop_values['PROJECTS'][proj]['ENABLE'] = true
+          # If ROLLBACK true deploy without version (LIKEPROD)
+          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
         end
 
         labels.map(&:upcase).each do |proj|
