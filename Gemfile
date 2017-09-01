@@ -12,6 +12,7 @@ gem 'ottinfra-sendmail', git: 'https://github.com/onetwotrip/ott_infra-sendmail.
 gem 'rest-client'
 gem 'sendgrid-ruby'
 gem 'slop'
+gem 'terminal-table'
 gem 'tinybucket', git: 'https://github.com/dshmelev/tinybucket'
 
 group :development do
