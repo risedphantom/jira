@@ -13,6 +13,7 @@ require 'pp'
 require 'rest-client'
 require 'sendgrid-ruby'
 require 'simple_config'
+require 'terminal-table'
 
 require 'check'
 require 'issue'

@@ -3,8 +3,6 @@ module Scenarios
   # DeployRelease scenario
   class DeployRelease
     def run
-      jira = JIRA::Client.new SimpleConfig.jira.to_h
-      issue = jira.Issue.find SimpleConfig.jira.issue
       projects_conf = YAML.load_file(ENV['PROJECTS_CONF'])
       all_projects = projects_conf.map { |_, v| v['projects'] }.flatten.sort.uniq
       prop_values = {
@@ -15,68 +13,74 @@ module Scenarios
         'STAGE' => ENV['STAGE'],
       }
 
-      # Get unique labels from release issue and all linked issues
-      labels = issue.labels
-      issue.linked_issues('deployes').each do |linked_issue|
-        labels.concat(linked_issue.labels)
-      end
-      labels = labels.uniq
-
-      prs = issue.related['pullRequests']
-
-      puts 'Checking for wrong PRs names:'
-
-      prs.each do |pr|
-        prname = pr['name'].dup
-        unless pr['name'].strip!.nil?
-          puts "[#{prname}] - WRONG! Stripped. Bad guy: #{pr['author']['name']}"
+      if SimpleConfig.jira.issue
+        jira = JIRA::Client.new SimpleConfig.jira.to_h
+        issue = jira.Issue.find SimpleConfig.jira.issue
+        # Get unique labels from release issue and all linked issues
+        labels = issue.labels
+        issue.linked_issues('deployes').each do |linked_issue|
+          labels.concat(linked_issue.labels)
         end
-      end
+        labels = labels.uniq
 
-      git_style_release = SimpleConfig.jira.issue.tr('-', ' ').downcase.capitalize
-      prs.reject! do |pr|
-        if pr['name'] !~ /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/
-          LOGGER.warn "[#{pr['name']}] - WRONG NAME! \
-                       Expedted /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/. \
-                       Bad guy: #{pr['author']['name']}"
-          true
-        elsif pr['status'] == 'DECLINED'
-          LOGGER.warn "[#{pr['name']}] - DECLINED! Bad guy: #{pr['author']['name']}"
-          true
-        else
-          LOGGER.info "[#{pr['name']}] - OK"
-          false
-        end
-      end
+        prs = issue.related['pullRequests']
 
-      if prs.empty?
-        puts 'No pull requests for this task!'
-        exit 1
-      end
+        puts 'Checking for wrong PRs names:'
 
-      puts 'Selected PRs:'
-      puts prs.map { |pr| pr['name'] }
-      pp prs
-
-      prs.each do |pr|
-        repo_name = Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git'
-        unless pr['destination']['branch'].include? 'master'
-          puts "WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
-          next
-        end
-        projects_conf[repo_name]['projects'].each do |proj|
-          prop_values['PROJECTS'][proj] = {}
-          prop_values['PROJECTS'][proj]['ENABLE'] = true
-          # If ROLLBACK true deploy without version (LIKEPROD)
-          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
+        prs.each do |pr|
+          prname = pr['name'].dup
+          unless pr['name'].strip!.nil?
+            puts "[#{prname}] - WRONG! Stripped. Bad guy: #{pr['author']['name']}"
+          end
         end
 
-        labels.map(&:upcase).each do |proj|
-          next unless all_projects.include? proj
-          prop_values['PROJECTS'][proj] = {}
-          prop_values['PROJECTS'][proj]['ENABLE'] = true
-          # If ROLLBACK true deploy without version (LIKEPROD)
-          prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
+        git_style_release = SimpleConfig.jira.issue.tr('-', ' ').downcase.capitalize
+        prs.reject! do |pr|
+          if pr['name'] !~ /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/
+            LOGGER.warn "[#{pr['name']}] - WRONG NAME! \
+                         Expedted /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/. \
+                         Bad guy: #{pr['author']['name']}"
+            true
+          elsif pr['status'] == 'DECLINED'
+            LOGGER.warn "[#{pr['name']}] - DECLINED! Bad guy: #{pr['author']['name']}"
+            true
+          else
+            LOGGER.info "[#{pr['name']}] - OK"
+            false
+          end
+        end
+
+        if prs.empty?
+          puts 'No pull requests for this task!'
+          exit 1
+        end
+
+        puts Terminal::Table.new(
+          title:    'Deploy PRs',
+          headings: %w(pullrequest status author url),
+          rows:     prs.map { |v| [v['name'], v['status'], v['author']['name'], v['url']] }
+        )
+
+        prs.each do |pr|
+          repo_name = Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git'
+          unless pr['destination']['branch'].include? 'master'
+            puts "WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
+            next
+          end
+          projects_conf[repo_name]['projects'].each do |proj|
+            prop_values['PROJECTS'][proj] = {}
+            prop_values['PROJECTS'][proj]['ENABLE'] = true
+            # If ROLLBACK true deploy without version (LIKEPROD)
+            prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
+          end
+
+          labels.map(&:upcase).each do |proj|
+            next unless all_projects.include? proj
+            prop_values['PROJECTS'][proj] = {}
+            prop_values['PROJECTS'][proj]['ENABLE'] = true
+            # If ROLLBACK true deploy without version (LIKEPROD)
+            prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
+          end
         end
       end
 
@@ -89,8 +93,11 @@ module Scenarios
         end
       end
 
-      pp prop_values
-
+      puts Terminal::Table.new(
+        title:    'Deploy projects',
+        headings: %w(Project branch),
+        rows:      prop_values['PROJECTS'].map { |k, v| [k, v['BRANCH']] }
+      )
       JavaProperties.write({ 'DEPLOY' => prop_values.to_json }, './env.properties')
 
       exit 0
