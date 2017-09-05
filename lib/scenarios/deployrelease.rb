@@ -35,38 +35,34 @@ module Scenarios
         end
 
         git_style_release = SimpleConfig.jira.issue.tr('-', ' ').downcase.capitalize
-        prs.reject! do |pr|
+        prs.each do |pr|
           if pr['name'] !~ /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/
             LOGGER.warn "[#{pr['name']}] - WRONG NAME! \
                          Expedted /^((#{SimpleConfig.jira.issue})|(#{git_style_release}))/. \
                          Bad guy: #{pr['author']['name']}"
-            true
+            pr['reject'] = 'WRONGNAME'.yellow
           elsif pr['status'] == 'DECLINED'
             LOGGER.warn "[#{pr['name']}] - DECLINED! Bad guy: #{pr['author']['name']}"
-            true
+            pr['reject'] = 'DECLINED'.yellow
+          elsif !projects_conf[Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git']
+            LOGGER.warn "[#{pr['name']}] - No project settings"
+            pr['reject'] = 'NOCONFIG'.yellow
+          elsif !pr['destination']['branch'].include? 'master'
+            LOGGER.warn "[#{pr['name']}] - WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
+            pr['reject'] = 'NOTMASTER'.yellow
           else
             LOGGER.info "[#{pr['name']}] - OK"
-            false
           end
-        end
-
-        if prs.empty?
-          puts 'No pull requests for this task!'
-          exit 1
         end
 
         puts Terminal::Table.new(
-          title:    'Deploy PRs',
-          headings: %w(pullrequest status author url),
-          rows:     prs.map { |v| [v['name'], v['status'], v['author']['name'], v['url']] }
+          title:    'Pullrequests status',
+          headings: %w(status author url),
+          rows:     prs.map { |v| [v['reject'] || v['status'].green, v['author']['name'], v['url']] }
         )
 
-        prs.each do |pr|
+        prs.reject { |pr| pr['reject'] }.each do |pr|
           repo_name = Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git'
-          unless pr['destination']['branch'].include? 'master'
-            puts "WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
-            next
-          end
           projects_conf[repo_name]['projects'].each do |proj|
             prop_values['PROJECTS'][proj] = {}
             prop_values['PROJECTS'][proj]['ENABLE'] = true
