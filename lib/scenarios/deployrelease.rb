@@ -16,13 +16,6 @@ module Scenarios
       if SimpleConfig.jira.issue
         jira = JIRA::Client.new SimpleConfig.jira.to_h
         issue = jira.Issue.find SimpleConfig.jira.issue
-        # Get unique labels from release issue and all linked issues
-        labels = issue.labels
-        issue.linked_issues('deployes').each do |linked_issue|
-          labels.concat(linked_issue.labels)
-        end
-        labels = labels.uniq
-
         prs = issue.related['pullRequests']
 
         puts 'Checking for wrong PRs names:'
@@ -64,14 +57,6 @@ module Scenarios
         prs.reject { |pr| pr['reject'] }.each do |pr|
           repo_name = Git::Utils.url_to_ssh(pr['url']).to_s.split('/')[0..1].join('/') + '.git'
           projects_conf[repo_name]['projects'].each do |proj|
-            prop_values['PROJECTS'][proj] = {}
-            prop_values['PROJECTS'][proj]['ENABLE'] = true
-            # If ROLLBACK true deploy without version (LIKEPROD)
-            prop_values['PROJECTS'][proj]['BRANCH'] = pr['source']['branch'] unless true?(ENV['ROLLBACK'])
-          end
-
-          labels.map(&:upcase).each do |proj|
-            next unless all_projects.include? proj
             prop_values['PROJECTS'][proj] = {}
             prop_values['PROJECTS'][proj]['ENABLE'] = true
             # If ROLLBACK true deploy without version (LIKEPROD)
