@@ -47,7 +47,7 @@ module Scenarios
             LOGGER.warn "[#{pr['name']}] - NOT OPEN! Bad guy: #{pr['author']['name']}"
             pr['reject'] = 'NOTOPEN'.yellow
           else
-            LOGGER.info "[#{pr['name']}] - OK"
+            LOGGER.info "[#{pr['name']}] - #{pr['status']} - OK"
           end
         end
 
