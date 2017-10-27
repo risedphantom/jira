@@ -43,8 +43,11 @@ module Scenarios
           elsif !pr['destination']['branch'].include? 'master'
             LOGGER.warn "[#{pr['name']}] - WTF? Why is this Pull Request here? o_O (destination: #{pr['destination']['branch']}"
             pr['reject'] = 'NOTMASTER'.yellow
+          elsif pr['status'] != 'OPEN'
+            LOGGER.warn "[#{pr['name']}] - NOT OPEN! Bad guy: #{pr['author']['name']}"
+            pr['reject'] = 'NOTOPEN'.yellow
           else
-            LOGGER.info "[#{pr['name']}] - OK"
+            LOGGER.info "[#{pr['name']}] - #{pr['status']} - OK"
           end
         end
 
