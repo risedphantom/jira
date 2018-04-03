@@ -13,7 +13,7 @@ gem 'rest-client'
 gem 'sendgrid-ruby'
 gem 'slop'
 gem 'terminal-table'
-gem 'tinybucket', git: 'https://github.com/dshmelev/tinybucket'
+gem 'tinybucket', git: 'https://github.com/onetwotrip/tinybucket'
 
 group :development do
   gem 'overcommit'
