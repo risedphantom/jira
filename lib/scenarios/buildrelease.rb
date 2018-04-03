@@ -27,7 +27,7 @@ module Scenarios
       #   1) Get deployes issues of release
       #   2) Check status of blocked tasks of issues.
       #   3) If task hasn't necessary status - unlink issue from release
-      good_statuses = %w(Done Closed Fixed Rejected)
+      good_statuses = %w[Done Closed Fixed Rejected]
       release.issuelinks.each do |issuelink|
         next unless issuelink.type.name == 'Deployed' &&
                     issuelink.outwardIssue &&
@@ -48,7 +48,7 @@ module Scenarios
 
       # rubocop:disable Metrics/BlockNesting
       LOGGER.info "Number of issues: #{release.linked_issues('deployes').size}"
-      release.linked_issues('deployes').each do |issue|
+      release.linked_issues('deployes').each do |issue| # rubocop:disable Metrics/BlockLength
         LOGGER.info "Working on #{issue.key}"
         issue.transition 'Not merged' if issue.has_transition? 'Not merged'
         has_merges = false
@@ -60,7 +60,7 @@ module Scenarios
           issue.post_comment body
           merge_fail = true
         else
-          issue.related['pullRequests'].each do |pullrequest|
+          issue.related['pullRequests'].each do |pullrequest| # rubocop:disable Metrics/BlockLength
             if pullrequest['status'] != 'OPEN'
               msg = "Not processing not OPEN PR #{pullrequest['url']}"
               LOGGER.fatal msg
@@ -70,7 +70,7 @@ module Scenarios
             if pullrequest['source']['branch'].match "^#{issue.key}"
               # Need to remove follow each-do line.
               # Branch name/url can be obtained from PR.
-              issue.related['branches'].each do |branch|
+              issue.related['branches'].each do |branch| # rubocop:disable Metrics/BlockLength
                 next unless branch['url'] == pullrequest['source']['url']
 
                 repo_name = branch['repository']['name']
