@@ -60,7 +60,7 @@ class GitRepo
     current = @git.revparse 'HEAD'
     @git.checkout commit
 
-    if block_given?
+    if block_given? # rubocop:disable Style/GuardClause
       yield self
       @git.checkout current
     end

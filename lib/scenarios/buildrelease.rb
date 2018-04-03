@@ -8,10 +8,7 @@ module Scenarios
       @opts = opts
     end
 
-    # rubocop:disable Metrics/CyclomaticComplexity
-    # rubocop:disable Metrics/PerceivedComplexity
-    # rubocop:disable Metrics/MethodLength
-    def run
+    def run # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
       LOGGER.info "Build release #{opts[:release]}"
 
       options = { auth_type: :basic }.merge(opts.to_hash)
@@ -46,7 +43,6 @@ module Scenarios
       release_branch = "#{opts[:release]}-release"
       source = opts[:source]
 
-      # rubocop:disable Metrics/BlockNesting
       LOGGER.info "Number of issues: #{release.linked_issues('deployes').size}"
       release.linked_issues('deployes').each do |issue| # rubocop:disable Metrics/BlockLength
         LOGGER.info "Working on #{issue.key}"
@@ -114,11 +110,11 @@ module Scenarios
                   Замержите ветку #{branch['name']} в ветку релиза #{pre_release_branch}.
                   После этого сообщите своему тимлиду, чтобы он перевёл задачу в статус in Release
                   BODY
-                  if opts[:push]
+                  if opts[:push] # rubocop:disable Metrics/BlockNesting
                     issue.post_comment body
                     merge_fail = true
                   end
-                  badissues[:unmerged] = [] unless badissues.key?(:unmerged)
+                  badissues[:unmerged] = [] unless badissues.key?(:unmerged) # rubocop:disable Metrics/BlockNesting
                   badissues[:unmerged].push(key: issue.key, body: body)
                   repo_path.reset_hard
                   puts "\n"

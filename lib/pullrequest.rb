@@ -51,11 +51,11 @@ module JIRA
       parse_url @pr['destination']['url']
     end
 
-    def reviewers
+    def reviewers # rubocop:disable Lint/DuplicateMethods
       @reviewers ||= reviewers_by_files(changed_files)
     end
 
-    def changed_files
+    def changed_files # rubocop:disable Lint/DuplicateMethods
       @changed_files ||= files
     end
 
