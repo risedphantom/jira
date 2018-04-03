@@ -16,7 +16,7 @@ module JIRA
 
     def add(pullreq)
       raise TypeError, "Expected PullRequest value. Got #{pullreq.class}" unless pullreq.instance_of?(PullRequest)
-      @prs.push pr
+      @prs.push pullreq
     end
 
     def valid?
