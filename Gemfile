@@ -18,13 +18,14 @@ gem 'tinybucket', git: 'https://github.com/onetwotrip/tinybucket'
 group :development do
   gem 'overcommit'
 end
+
 group :test, :development do
   gem 'rake'
   gem 'rspec'
   gem 'rubocop'
 end
+
 group :test do
-  gem 'codeclimate-test-reporter'
   gem 'simplecov'
 end
 
