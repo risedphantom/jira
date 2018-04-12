@@ -18,7 +18,7 @@ module Scenarios
         issue = jira.Issue.find SimpleConfig.jira.issue
         prs = issue.related['pullRequests']
 
-        if prs.length == 0
+        if prs.empty?
           LOGGER.error "Error: no pull reqwuests found for the issue #{SimpleConfig.jira.issue}"
           exit 1
         end
