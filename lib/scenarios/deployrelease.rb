@@ -19,7 +19,7 @@ module Scenarios
         prs = issue.related['pullRequests']
 
         if prs.empty?
-          LOGGER.error "Error: no pull reqwuests found for the issue #{SimpleConfig.jira.issue}"
+          LOGGER.error "Error: no pull requests found for the issue #{SimpleConfig.jira.issue}"
           exit 1
         end
 
