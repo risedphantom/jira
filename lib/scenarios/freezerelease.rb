@@ -49,6 +49,12 @@ module Scenarios
           create_pullrequest SimpleConfig.bitbucket.to_h.merge(src: new_branch)
         end
       end
+
+      LOGGER.info 'Get all labels again'
+      release_labels = issue.all_labels
+      LOGGER.info "Add labels: #{release_labels} to release #{issue.key}"
+      issue.save(fields: { labels: release_labels })
+      issue.fetch
     end
   end
 end
