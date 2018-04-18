@@ -43,7 +43,7 @@ module Scenarios
       # error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
       # LOGGER.error "Creation of release was failed with error #{error_message}"
       LOGGER.error "We dunno how JIRA::HTTPError looks so thats all: #{jira_error.inspect}"
-      raise "JIRA::HTTPError"
+      raise 'JIRA::HTTPError'
     end
 
     # :nocov:
