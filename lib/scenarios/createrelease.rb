@@ -40,10 +40,15 @@ module Scenarios
       release.fetch
       release
     rescue JIRA::HTTPError => jira_error
-      # error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
-      # LOGGER.error "Creation of release was failed with error #{error_message}"
-      LOGGER.error "We dunno how JIRA::HTTPError looks so thats all: #{jira_error.inspect}"
-      raise 'JIRA::HTTPError'
+      error_code = ''
+      if jira_error.response['body_exists']
+        error_message = jira_error.message
+      else
+        error_message = jira_error.response.body
+        error_code    = jira_error.response.code
+      end
+
+      LOGGER.error "Creation of release was failed with code #{error_code} and error #{error_message}"
     end
 
     # :nocov:
