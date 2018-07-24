@@ -78,7 +78,7 @@ module Scenarios
           unless ENV['SKIP_LIKEPROD'] == ''
             begin
               skipies = ENV['SKIP_LIKEPROD'].split(',')
-              skip = true if skipies.include?(proj)
+              skip = true if skipies.include?(proj.downcase)
             rescue StandardError => e
               LOGGER.info "problems with SKIP_LIKEPROD: #{e.message}"
             end
