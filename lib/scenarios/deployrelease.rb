@@ -73,7 +73,21 @@ module Scenarios
 
       if true?(ENV['LIKEPROD'])
         all_projects.each do |proj|
-          next if prop_values['PROJECTS'][proj]
+          skip = false
+
+          unless ENV['SKIP_LIKEPROD'] == ''
+            begin
+              skipies = ENV['SKIP_LIKEPROD'].split(',')
+              skip = true if skipies.include?(proj)
+            rescue StandardError => e
+              LOGGER.info "problems with SKIP_LIKEPROD: #{e.message}"
+            end
+          end
+
+          skip = true if prop_values['PROJECTS'][proj]
+
+          next if skip
+
           prop_values['PROJECTS'][proj] = {}
           prop_values['PROJECTS'][proj]['ENABLE'] = true
           prop_values['PROJECTS'][proj]['BRANCH'] = 'master'
