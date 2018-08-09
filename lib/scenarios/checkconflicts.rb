@@ -21,7 +21,7 @@ module Scenarios
           commit          = BITBUCKET.repo(pr.repo_owner, pr.repo_slug).commit(commit_id)
           status_of_build = commit.build_statuses.collect.last
 
-          if status_of_build.state.upcase.include? 'FAILED'
+          if !status_of_build.nil? && status_of_build.state.upcase.include?('FAILED')
             puts "Detected build status error in #{issue_task.key}. Writing comment in ticket...".red
             puts "#{issue_task.key}: https://bitbucket.org/OneTwoTrip/#{pr.repo_slug}/pull-requests/#{pr.id}".red
             puts "Writing message in #{issue_task.key}".red
@@ -36,7 +36,7 @@ module Scenarios
                   Проверьте почему билд в ветке не собрался и исправьте проблему
             BODY
             puts "Reopen ticket: #{issue_task.key}".red
-            issue_task.transition 'Reopened' unless is_already_reopen
+            issue_task.transition 'Reopen' unless is_already_reopen
             is_already_reopen = true
           end
           conflict_flag = diff_in_pr.include? '<<<<<<<'
@@ -55,7 +55,7 @@ module Scenarios
                   После последнего релиза в этой ветке найдены конфликты с мастером. Исправьте их
             BODY
             puts "Reopen ticket: #{issue_task.key}".red
-            issue_task.transition 'Reopened' unless is_already_reopen
+            issue_task.transition 'Reopen' unless is_already_reopen
             is_already_reopen = true
           end
         rescue StandardError => error
