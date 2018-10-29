@@ -9,7 +9,7 @@ module Git
   class Base
     # Create pull request from src branch to dst
     # By default: from local branch to master
-    def create_pullrequest(src: current_branch, dst: 'master', repo: remote.url.repo, username: nil, password: nil)
+    def create_pullrequest(src: current_branch, dst: 'master', repo: remote.url.repo, username: nil, password: nil, oauth: nil)
       request = { title: "#{src} #{repo}",
                   source: { branch: { name: src },
                             repository: { full_name: repo } },
