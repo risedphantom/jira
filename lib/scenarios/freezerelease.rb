@@ -11,12 +11,12 @@ module Scenarios
       LOGGER.info "Starting freeze_release for #{SimpleConfig.jira.issue}"
       jira  = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find(SimpleConfig.jira.issue)
-      issue.post_comment <<-BODY
-      {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-        Запущено формирование релизных веток(!)
-        Ожидайте сообщение о завершении
-      {panel}
-      BODY
+      # issue.post_comment <<-BODY
+      # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+      #   Запущено формирование релизных веток(!)
+      #   Ожидайте сообщение о завершении
+      # {panel}
+      # BODY
 
       begin
         release_issues = []
@@ -71,7 +71,12 @@ module Scenarios
             push(repo_path.remote('origin'), new_branch) # push -release to origin
             branch(old_branch).delete_both if old_branch != 'master' # delete -pre from local/remote
             LOGGER.info "Creating PR from #{new_branch} to #{cur_branch}"
-            create_pullrequest SimpleConfig.bitbucket.to_h.merge(src: new_branch)
+            create_pullrequest(SimpleConfig.bitbucket.to_h.merge(src: new_branch))
+            # create_pullrequest_new(
+            #   SimpleConfig.bitbucket.to_h[:username],
+            #   SimpleConfig.bitbucket.to_h[:password],
+            #   new_branch
+            # )
           end
         end
 
@@ -84,20 +89,31 @@ module Scenarios
         issue.save(fields: { labels: release_labels })
         issue.fetch
       rescue StandardError => e
-        issue.post_comment <<-BODY
-        {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-         Не удалось собрать релизные ветки (x)
-         Подробности в логе таски https://jenkins.twiket.com/view/RELEASE/job/freeze_release/
-        {panel}
-        BODY
+        # issue.post_comment <<-BODY
+        # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+        #  Не удалось собрать релизные ветки (x)
+        #  Подробности в логе таски https://jenkins.twiket.com/view/RELEASE/job/freeze_release/
+        # {panel}
+        # BODY
         LOGGER.error "Не удалось собрать релизные ветки, ошибка: #{e.message}, трейс:\n\t#{e.backtrace.join("\n\t")}"
         exit(1)
       end
-      issue.post_comment <<-BODY
-      {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-        Формирование релизных веток завершено (/)
-      {panel}
-      BODY
+      # issue.post_comment <<-BODY
+      # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+      #   Формирование релизных веток завершено (/)
+      # {panel}
+      # BODY
     end
+  end
+end
+
+# kill Timeout module for debug bug in Rubymine
+if $LOADED_FEATURES.any? {|f| f.include? 'debase'}
+  module Timeout
+    def timeout(sec, klass = nil)
+      yield(sec)
+    end
+
+    module_function :timeout
   end
 end
