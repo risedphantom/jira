@@ -43,7 +43,7 @@ module Scenarios
           exit(1)
         end
 
-        release_issues.each do |branch|
+        release_issues.each do |branch| # rubocop:disable Metrics/BlockLength
           today      = Time.new.strftime('%d.%m.%Y')
           old_branch = branch['name']
           new_branch = "#{SimpleConfig.jira.issue}-release-#{today}"
@@ -71,12 +71,19 @@ module Scenarios
             push(repo_path.remote('origin'), new_branch) # push -release to origin
             branch(old_branch).delete_both if old_branch != 'master' # delete -pre from local/remote
             LOGGER.info "Creating PR from #{new_branch} to #{cur_branch}"
-            create_pullrequest SimpleConfig.bitbucket.to_h.merge(src: new_branch)
+            create_pullrequest(
+              SimpleConfig.bitbucket[:username],
+              SimpleConfig.bitbucket[:password],
+              new_branch
+            )
           end
         end
 
         LOGGER.info 'Get all labels again'
-        release_labels = issue.all_labels
+        release_labels = []
+        issue.branches.each do |br|
+          release_labels << br.repo_slug
+        end
         LOGGER.info "Add labels: #{release_labels} to release #{issue.key}"
         issue.save(fields: { labels: release_labels })
         issue.fetch
