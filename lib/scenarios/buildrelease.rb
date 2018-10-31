@@ -170,13 +170,15 @@ module Scenarios
           LOGGER.fatal "#{status}: #{keys.size}"
           keys.each { |i| LOGGER.fatal i[:key] }
         end
-      rescue StandardError
+
+      rescue StandardError => e
         release.post_comment <<-BODY
         {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
          Не удалось собрать -pre ветки (x)
          Подробности в логе таски https://jenkins.twiket.com/view/RELEASE/job/build_release/
         {panel}
         BODY
+        LOGGER.error "Не удалось собрать -pre ветки, ошибка: #{e.message}, трейс:\n\t#{e.backtrace.join("\n\t")}"
         exit(1)
       end
       release.post_comment <<-BODY
