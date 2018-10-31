@@ -170,7 +170,6 @@ module Scenarios
           LOGGER.fatal "#{status}: #{keys.size}"
           keys.each { |i| LOGGER.fatal i[:key] }
         end
-
       rescue StandardError => e
         release.post_comment <<-BODY
         {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
