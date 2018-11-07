@@ -80,13 +80,14 @@ module Scenarios
         end
 
         LOGGER.info 'Get all labels again'
+        issue = jira.Issue.find(SimpleConfig.jira.issue)
         release_labels = []
         issue.api_pullrequests.each do |br|
           LOGGER.info("Repo: #{br.repo_slug}")
           release_labels << br.repo_slug
         end
         if release_labels.empty?
-          LOGGER.info 'Made empty labels array! I will skip set up new labels step'
+          LOGGER.error 'Made empty labels array! I will skip set up new labels step'
         else
           LOGGER.info "Add labels: #{release_labels} to release #{issue.key}"
           issue.save(fields: { labels: release_labels })
