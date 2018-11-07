@@ -87,7 +87,7 @@ module Scenarios
           release_labels << br.repo_slug
         end
         if release_labels.empty?
-          LOGGER.info 'Made empty labels array! I will skip set up new labels step'
+          LOGGER.error 'Made empty labels array! I will skip set up new labels step'
         else
           LOGGER.info "Add labels: #{release_labels} to release #{issue.key}"
           issue.save(fields: { labels: release_labels })
