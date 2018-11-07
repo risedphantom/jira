@@ -82,6 +82,7 @@ module Scenarios
         LOGGER.info 'Get all labels again'
         release_labels = []
         issue.branches.each do |br|
+          LOGGER.info("Repo: #{br.repo_slug}")
           release_labels << br.repo_slug
         end
         LOGGER.info "Add labels: #{release_labels} to release #{issue.key}"
