@@ -80,6 +80,7 @@ module Scenarios
         end
 
         LOGGER.info 'Get all labels again'
+        issue = jira.Issue.find(SimpleConfig.jira.issue)
         release_labels = []
         issue.api_pullrequests.each do |br|
           LOGGER.info("Repo: #{br.repo_slug}")
