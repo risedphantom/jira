@@ -111,4 +111,3 @@ module Scenarios
     end
   end
 end
-
