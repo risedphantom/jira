@@ -11,12 +11,12 @@ module Scenarios
       LOGGER.info "Starting freeze_release for #{SimpleConfig.jira.issue}"
       jira  = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find(SimpleConfig.jira.issue)
-      # issue.post_comment <<-BODY
-      # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-      #   Запущено формирование релизных веток(!)
-      #   Ожидайте сообщение о завершении
-      # {panel}
-      # BODY
+      issue.post_comment <<-BODY
+      {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+        Запущено формирование релизных веток(!)
+        Ожидайте сообщение о завершении
+      {panel}
+      BODY
 
       begin
         release_issues = []
@@ -94,20 +94,20 @@ module Scenarios
           issue.fetch
         end
       rescue StandardError => e
-        # issue.post_comment <<-BODY
-        # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-        #  Не удалось собрать релизные ветки (x)
-        #  Подробности в логе таски https://jenkins.twiket.com/view/RELEASE/job/freeze_release/
-        # {panel}
-        # BODY
+        issue.post_comment <<-BODY
+        {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+         Не удалось собрать релизные ветки (x)
+         Подробности в логе таски https://jenkins.twiket.com/view/RELEASE/job/freeze_release/
+        {panel}
+        BODY
         LOGGER.error "Не удалось собрать релизные ветки, ошибка: #{e.message}, трейс:\n\t#{e.backtrace.join("\n\t")}"
         exit(1)
       end
-      # issue.post_comment <<-BODY
-      # {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
-      #   Формирование релизных веток завершено (/)
-      # {panel}
-      # BODY
+      issue.post_comment <<-BODY
+      {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+        Формирование релизных веток завершено (/)
+      {panel}
+      BODY
     end
   end
 end
