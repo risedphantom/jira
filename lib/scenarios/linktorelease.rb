@@ -3,7 +3,7 @@ module Scenarios
   # Link tickets to release issue
   class LinkToRelease
     def find_by_filter(issue, filter)
-      issue.jql("filter=#{filter}")
+      issue.jql("filter=#{filter}", max_results: 100)
     rescue JIRA::HTTPError => jira_error
       error_message = jira_error.response['body_exists'] ? jira_error.message : jira_error.response.body
       LOGGER.error "Error in JIRA with the search by filter #{filter}: #{error_message}"

@@ -7,6 +7,8 @@ module Scenarios
       # noinspection RubyArgCount
       issue = jira.Issue.find(SimpleConfig.jira.issue)
 
+      is_error = false
+
       pullrequests = issue.pullrequests(SimpleConfig.git.to_h)
                           .filter_by_status('OPEN')
                           .filter_by_source_url(SimpleConfig.jira.issue)
@@ -20,18 +22,37 @@ module Scenarios
         # Checkout repo
         puts "Clone/Open with #{pr.dst} branch #{pr.dst.branch} and merge #{pr.src.branch} and push".green
         begin
-          pr.repo.push
+          pr.repo.push('origin', pr.pr['destination']['branch'])
         rescue Git::GitExecuteError => e
+          is_error = true
           puts e.message.red
+          if e.message.include?('Merge conflict')
+            issue.post_comment <<-BODY
+              {panel:title=Build status error|borderStyle=dashed|borderColor=#ccc|titleBGColor=#F7D6C1|bgColor=#FFFFCE}
+                  Не удалось замержить PR: #{pr.pr['url']}
+                  *Причина:* Merge conflict
+              {panel}
+
+            BODY
+          else
+            issue.post_comment <<-BODY
+              {panel:title=Build status error|borderStyle=dashed|borderColor=#ccc|titleBGColor=#F7D6C1|bgColor=#FFFFCE}
+                  Не удалось замержить PR: #{pr.pr['url']}
+                  *Причина:* #{e.message}
+              {panel}
+
+            BODY
+          end
           next
         end
       end
 
       issue.linked_issues('deployes').each do |subissue|
-        puts subissue.key
         # Transition to DONE
         subissue.transition 'To master' if subissue.get_transition_by_name 'To master'
       end
+
+      exit(1) if is_error
     end
   end
 end

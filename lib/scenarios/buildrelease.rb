@@ -24,7 +24,7 @@ module Scenarios
 
       begin
         if release.linked_issues('deployes').empty? || opts[:ignorelinks]
-          LOGGER.warn 'Deploys issue not found or ignored. Force JQL.'
+          LOGGER.warn "I can't found ticket linked with type 'deployes'"
           release.search_deployes.each { |issue| issue.link(opts[:release]) }
         end
 
@@ -108,6 +108,10 @@ module Scenarios
                   repo_path.checkout('master')
                   # Merge master to pre_release_branch (ex OTT-8703-pre)
                   prepare_branch(repo_path, source, pre_release_branch, opts[:clean])
+                  # enable 'ours' merge strategy
+                  repo_path.chdir do
+                    `git config merge.ours.driver true`
+                  end
                   begin
                     merge_message = "CI: merge branch #{branch['name']} to release "\
                                   " #{opts[:release]}.  (pull request #{pullrequest['id']}) "
@@ -125,8 +129,9 @@ module Scenarios
                   {noformat:title=Ошибка}
                   Error #{e}
                   {noformat}
-                  Замержите ветку #{branch['name']} в ветку релиза #{pre_release_branch}.
-                  После этого сообщите своему тимлиду, чтобы он перевёл задачу в статус in Release
+                  Замержите мастер в ветку #{branch['name']} .
+                  Затем замержите ветку #{branch['name']} в ветку релиза #{pre_release_branch}.
+                  После этого переведите задачу в статус *In Release*
                     BODY
                     if opts[:push] # rubocop:disable Metrics/BlockNesting
                       issue.post_comment body
