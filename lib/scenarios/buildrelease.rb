@@ -108,6 +108,10 @@ module Scenarios
                   repo_path.checkout('master')
                   # Merge master to pre_release_branch (ex OTT-8703-pre)
                   prepare_branch(repo_path, source, pre_release_branch, opts[:clean])
+                  # enable 'ours' merge strategy
+                  repo_path.chdir do
+                    `git config merge.ours.driver true`
+                  end
                   begin
                     merge_message = "CI: merge branch #{branch['name']} to release "\
                                   " #{opts[:release]}.  (pull request #{pullrequest['id']}) "
