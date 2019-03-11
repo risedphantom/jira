@@ -2,6 +2,7 @@ require 'helpers'
 require 'test'
 require 'git'
 require 'erb'
+require 'uri'
 
 module JIRA
   ##
@@ -60,8 +61,11 @@ module JIRA
     end
 
     def repo
-      @repo ||= Git.get_branch dst.full_url
-      @repo.merge "origin/#{src.branch}"
+      @repo ||= Git.get_branch URI.decode_www_form_component(dst.full_url)
+      @repo.chdir do
+        `git fetch --prune`
+      end
+      @repo.merge("origin/#{@pr['source']['branch']}", "merge #{@pr['source']['branch']} into #{@pr['destination']['branch']}")
       @repo
     end
 

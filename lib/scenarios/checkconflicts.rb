@@ -52,7 +52,7 @@ module Scenarios
                   Branch: https://bitbucket.org/OneTwoTrip/#{pr.repo_slug}/branch/#{pr.source['branch']['name']}
                   PR: https://bitbucket.org/OneTwoTrip/#{pr.repo_slug}/pull-requests/#{pr.id}
               {panel}
-                  После последнего релиза в этой ветке найдены конфликты с мастером. Исправьте их
+                  После последнего релиза в этой ветке найдены конфликты с #{pr.destination['branch']['name']}. Исправьте их
             BODY
             puts "Reopen ticket: #{issue_task.key}".red
             issue_task.transition 'Reopen' unless is_already_reopen
