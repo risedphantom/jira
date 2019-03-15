@@ -72,10 +72,12 @@ module JIRA
 
       def get_transition_by_name(name)
         available_transitions = client.Transition.all(issue: self)
+        @avail_transitions = []
         available_transitions.each do |transition|
           return transition if transition.name == name
+          @avail_transitions << name
         end
-        LOGGER.warn "[#{key}] Transition state #{name} not found!"
+        LOGGER.warn "[#{key}] Transition state #{name} not found! Got only this: #{@avail_transitions.join(',')}"
       end
 
       def opts
