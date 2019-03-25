@@ -75,7 +75,7 @@ module JIRA
         @avail_transitions = []
         available_transitions.each do |transition|
           return transition if transition.name == name
-          @avail_transitions << name
+          @avail_transitions << transition.name
         end
         LOGGER.warn "[#{key}] Transition state #{name} not found! Got only this: #{@avail_transitions.join(',')}"
       end
