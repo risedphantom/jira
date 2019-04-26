@@ -7,7 +7,7 @@ module Scenarios
       instance
     end
 
-    def run
+    def run # rubocop:disable Metrics/MethodLength
       LOGGER.info "Starting freeze_release for #{SimpleConfig.jira.issue}"
       jira  = JIRA::Client.new SimpleConfig.jira.to_h
       issue = jira.Issue.find(SimpleConfig.jira.issue)
@@ -48,6 +48,11 @@ module Scenarios
 
         if release_issues.empty?
           LOGGER.error 'There is no -pre branches in release ticket'
+          issue.post_comment <<-BODY
+      {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+        Не возможно начать формировать релизные ветки. У тикета нет веток -pre
+      {panel}
+          BODY
           exit(1)
         end
 

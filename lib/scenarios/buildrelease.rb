@@ -8,7 +8,7 @@ module Scenarios
       @opts = opts
     end
 
-    def run # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize
+    def run(is_only_one_branch = false) # rubocop:disable Metrics/MethodLength, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity, Metrics/AbcSize, Metrics/LineLength
       LOGGER.info "Build release #{opts[:release]}"
 
       options = { auth_type: :basic }.merge(opts.to_hash)
@@ -34,12 +34,25 @@ module Scenarios
         #   3) If task hasn't necessary status - unlink issue from release
         good_statuses = %w[Done Closed Fixed Rejected]
         release.issuelinks.each do |issuelink|
-          next unless issuelink.type.name == 'Deployed' &&
+          if issuelink.type.name == 'Deployed' &&
             issuelink.outwardIssue && # rubocop:disable Layout/MultilineOperationIndentation
             issuelink.outwardIssue.linked_issues('is blocked by').any? { |i| !good_statuses.include? i.status.name } # rubocop:disable Layout/MultilineOperationIndentation, Metrics/LineLength
-          comment = "#{issuelink.outwardIssue.key} blocked. Unlink from release #{release.key}"
+            comment = "#{issuelink.outwardIssue.key} blocked. Unlink from release #{release.key}"
+            release.post_comment comment
+            issuelink.outwardIssue.post_comment comment
+            issuelink.delete
+            LOGGER.fatal comment
+          end
+          # Unlink issue with more than one product branches. Test is skipped
+          next unless is_only_one_branch
+          branches      = issuelink.outwardIssue.related['branches']
+          branches_list = []
+          branches.each do |branch|
+            branches_list << branch['repository']['name']
+          end
+          next unless (branches_list.uniq - ['avia_api_rspec']).size > 1
+          comment = "Remove issue #{issuelink.outwardIssue.key} from release. Reason: issue has more than 1 product branch"
           release.post_comment comment
-          issuelink.outwardIssue.post_comment comment
           issuelink.delete
           LOGGER.fatal comment
         end
@@ -164,10 +177,10 @@ module Scenarios
         LOGGER.info 'Repos:' unless repos.empty?
         repos.each do |name, repo|
           LOGGER.info "Push '#{pre_release_branch}' to '#{name}' repo"
-          if opts[:push]
-            local_repo = repo[:repo_base]
-            local_repo.push('origin', pre_release_branch)
-          end
+          next unless opts[:push]
+          local_repo = repo[:repo_base]
+          local_repo.push('origin', pre_release_branch)
+          local_repo.checkout('master')
         end
 
         LOGGER.fatal 'Not Merged:' unless badissues.empty?
@@ -185,6 +198,7 @@ module Scenarios
         LOGGER.error "Не удалось собрать -pre ветки, ошибка: #{e.message}, трейс:\n\t#{e.backtrace.join("\n\t")}"
         exit(1)
       end
+
       release.post_comment <<-BODY
       {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
         Сборка -pre веток завершена (/)
