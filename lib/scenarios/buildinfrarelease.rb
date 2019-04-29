@@ -19,14 +19,17 @@ module Scenarios
     def run
       # Build release for INFRA team specific
       step_id = (ENV['STEP_ID'] || 0).to_i
+      is_cd_build = ENV['CD_BUILD'] || false
       flag    = false
       jira    = JIRA::Client.new SimpleConfig.jira.to_h
       issue   = jira.Issue.find(SimpleConfig.jira.issue)
 
+      issue.transition 'Build Release' if is_cd_build
+
       if flag || step_id.zero?
         Scenarios::BuildRelease.new(@opts).run(true)
         LOGGER.info 'Wait while build will start'
-        sleep 30
+        sleep 20
         flag = true
       end
 
@@ -40,15 +43,19 @@ module Scenarios
         LOGGER.info "Freeze release #{@opts[:release]}"
         Scenarios::FreezeRelease.new.run
         LOGGER.info 'Wait while build will start'
-        sleep 30
+        sleep 20
         flag = true
       end
 
       if flag || (step_id == 3)
         LOGGER.info "Review release #{@opts[:release]}"
-        Scenarios::ReviewRelease.new.run
+        Scenarios::ReviewRelease.new.run(true)
       end
-    rescue StandardError => _
+
+      LOGGER.info "Move ticket #{@opts[:release]} to Testing status"
+      issue.transition 'Test Ready'
+    rescue StandardError, SystemExit => _
+      LOGGER.error "Found some errors while release #{@opts[:release]} was building"
       issue.post_comment @error_comment
       issue.transition 'Build Failed'
     end
