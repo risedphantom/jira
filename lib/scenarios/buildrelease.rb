@@ -24,8 +24,14 @@ module Scenarios
 
       begin
         if release.linked_issues('deployes').empty? || opts[:ignorelinks]
-          LOGGER.warn "I can't found ticket linked with type 'deployes'"
-          release.search_deployes.each { |issue| issue.link(opts[:release]) }
+          LOGGER.warn "I can't found ticket linked with type 'deploys'"
+          release.post_comment <<-BODY
+          {panel:title=Release notify!|borderStyle=dashed|borderColor=#ccc|titleBGColor=#E5A443|bgColor=#F1F3F1}
+            У релизного тикета нет тикетов с линком 'deploys'
+            Сборка остановлена
+          {panel}
+          BODY
+          exit(1)
         end
 
         # Unlink blocked issues:
@@ -50,7 +56,7 @@ module Scenarios
           branches.each do |branch|
             branches_list << branch.repo_slug
           end
-          next unless (branches_list.uniq - ['avia_api_rspec']).size > 1
+          next unless (branches_list.uniq - ['avia_api_rspec', 'back-components']).size > 1
           comment = "Remove issue #{issuelink.outwardIssue.key} from release. Reason: issue has more than 1 product branch"
           release.post_comment comment
           issuelink.delete
