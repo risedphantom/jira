@@ -106,7 +106,13 @@ module JIRA
           dataType: 'pullrequest',
         }
         @related ||= JSON.parse(
-          RestClient.get(create_endpoint('rest/dev-status/1.0/issue/detail').to_s, params: params)
+          RestClient::Request.execute(
+            method: :get,
+            url: create_endpoint('rest/dev-status/1.0/issue/detail').to_s,
+            headers: { params: params },
+            user: opts[:useremail],
+            password: opts[:token]
+          )
         )['detail'].first
 
         repos_id_list = {}
@@ -115,7 +121,7 @@ module JIRA
             url = branch['repository']['url']
             next unless url.include?('{')
             repo_id = url[url.rindex('{') + 1..url.size - 2].to_sym
-            repos_id_list[repo_id] = branch['repository']['name']
+            repos_id_list[repo_id] = branch['repository']['name'] if repos_id_list[repo_id].nil?
             url = "https://bitbucket.org/OneTwoTrip/#{branch['repository']['name']}"
             branch['url'] = "#{url}/branch/#{branch['name']}"
             branch['createPullRequestUrl'] = "#{url}/pull-requests/new?source=#{branch['name']}"
@@ -134,20 +140,20 @@ module JIRA
             pr['destination']['url'] = "https://bitbucket.org/OneTwoTrip/#{repos_name}/branch/#{pr['destination']['branch']}"
           end
         end
+        LOGGER.info "Issue detail for #{id}: #{@related}"
         @related
       end
 
       def create_endpoint(path)
         uri = "#{opts[:site]}#{opts[:context_path]}/#{path}"
-        endpoint = Addressable::URI.parse(uri)
-        endpoint.user = opts[:username]
-        endpoint.password = opts[:password]
-        endpoint
+        Addressable::URI.parse(uri)
       end
 
       def pullrequests(git_config = nil)
         JIRA::PullRequests.new(
-          *related['pullRequests'].map { |i| JIRA::PullRequest.new(git_config, i) }
+          *related['pullRequests'].map do |i|
+            JIRA::PullRequest.new(git_config, i)
+          end
         )
       end
 
