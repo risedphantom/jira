@@ -45,11 +45,14 @@ module Scenarios
             puts 'Try to decline PR to develop'.yellow
             with local_repo do
               LOGGER.info "Decline PR: #{pr.pr['source']['branch']}"
-              decline_pullrequest(
-                SimpleConfig.bitbucket[:username],
-                SimpleConfig.bitbucket[:password],
-                pr.pr['id']
-              )
+              if pr.pr['status'].include?('OPEN')
+                LOGGER.info "Found PR: #{pr.pr['source']['branch']} with status OPEN. Try to decline"
+                decline_pullrequest(
+                  SimpleConfig.bitbucket[:username],
+                  SimpleConfig.bitbucket[:password],
+                  pr.pr['id']
+                )
+              end
             end
             puts 'Decline PR to develop success'.green
             next
