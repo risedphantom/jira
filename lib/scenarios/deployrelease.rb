@@ -13,9 +13,16 @@ module Scenarios
         'STAGE' => ENV['STAGE'],
       }
 
-      if SimpleConfig.jira.issue
-        jira = JIRA::Client.new SimpleConfig.jira.to_h
-        issue = jira.Issue.find SimpleConfig.jira.issue
+      jira_issue = nil
+      jira_issue = SimpleConfig.jira.issue
+      jira_config = SimpleConfig.jira.to_h
+
+      puts "jira_issue: #{jira_issue.inspect}"
+      puts "jira_config: #{jira_config.inspect}"
+
+      if jira_issue
+        jira = JIRA::Client.new jira_config
+        issue = jira.Issue.find jira_issue
         prs = issue.related['pullRequests']
 
         puts prs.inspect
